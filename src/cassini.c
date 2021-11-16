@@ -1,11 +1,4 @@
-#include <endian.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "include/cassini.h"
-#include "print_responsive.c"
-
+#include "cassini.h"
 
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
@@ -25,7 +18,6 @@ const char usage_info[] = "\
    options:\n\
      -p PIPES_DIR -> look for the pipes in PIPES_DIR (default: /tmp/<USERNAME>/saturnd/pipes)\n\
 ";
-
 
 int main(int argc, char * argv[]) {
   errno = 0;
