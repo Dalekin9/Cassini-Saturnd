@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "cassini.h"
 
 const char usage_info[] = "\
