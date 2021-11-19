@@ -1,26 +1,4 @@
-#include <stdint.h>
 #include "cassini.h"
-
-typedef unsigned char BYTE;
-
-/* string is a uint32 field that contains :
-- the length `L` of the string (without the `0` at the end)
-- then the `L` bytes that are the contents of the string */
-typedef struct {
-  uint32_t length;
-  BYTE *s;
-} string;
-
-/* commandline contains :
-- argc = the length of the argc array
-- argv = an array of strings. argv[0] must contain the name of
-  the command and not be empty, the rest of the array contains the
-  arguments of the command. */
-typedef struct {
-  uint32_t argc;
-  string **argv;
-} commandline;
-
 
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
@@ -64,10 +42,10 @@ string* argToString (char* c) {
 /*
 Parses the arguments given that were passed to cassini.
 The arguments are transformed from char* to string*.
-Returns a commandline struct that contains all the args, with the name of the 
+Returns a commandline struct that contains all the args, with the name of the
 command as the first element of the array of string*.
 
-Exits the program with return code 1  if there isn't at least one argument 
+Exits the program with return code 1  if there isn't at least one argument
 to parse (or if malloc fails).
  */
 commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
@@ -85,9 +63,9 @@ commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
 	for(int i = 0; i < argc-optind; i++) {
 	  c->argv[i] = argToString(argv[optind+i]);
 	}
-	
+
 	return c;
-	
+
   } else { // the user didn't give a command to execute
     fprintf(stderr, "Missing a command name.\n %s", usage_info);
     exit(1);
@@ -110,7 +88,7 @@ int main(int argc, char * argv[]) {
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
   commandline *command;
-  
+
   int opt;
   char * strtoull_endp;
   while ((opt = getopt(argc, argv, "hlcqm:H:d:p:r:x:o:e:")) != -1) {
@@ -178,9 +156,15 @@ int main(int argc, char * argv[]) {
    */
 
   // --------
-  // | TODO : send the request & print results (if needed) 
+  // | TODO : send the request & print results (if needed)
   // --------
-  
+
+  //print in stdout/stderr infos
+  //an exemple to use the function
+  string a = {0,""};
+  print_response(operation, 0, 0, 0, 0, NULL ,NULL , a);
+
+
   return EXIT_SUCCESS;
 
 
