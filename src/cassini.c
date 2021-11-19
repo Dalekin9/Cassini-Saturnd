@@ -1,6 +1,5 @@
 #include "cassini.h"
 
-
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
       or: cassini [OPTIONS]    -> same\n\
@@ -157,7 +156,7 @@ int main(int argc, char * argv[]) {
    */
 
   // --------
-  // | TODO : send the request & print results (if needed)
+  // | TODO :
   // --------
 
   //print in stdout/stderr infos
