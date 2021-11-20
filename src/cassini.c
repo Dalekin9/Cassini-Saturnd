@@ -161,9 +161,8 @@ int main(int argc, char * argv[]) {
 
   //print in stdout/stderr infos
   //an exemple to use the function
-  string a = {0,""};
+  string a = {0,0};
   print_response(operation, 0, 0, 0, 0, NULL ,NULL , a);
-
 
   return EXIT_SUCCESS;
 
