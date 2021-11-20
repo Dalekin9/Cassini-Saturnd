@@ -1,4 +1,7 @@
+#include <unistd.h>
+#include <fcntl.h>
 #include "cassini.h"
+
 
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
@@ -29,7 +32,7 @@ int main(int argc, char * argv[]) {
   
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
-  
+
   int opt;
   char * strtoull_endp;
   while ((opt = getopt(argc, argv, "hlcqm:H:d:p:r:x:o:e:")) != -1) {
