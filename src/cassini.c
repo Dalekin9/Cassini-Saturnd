@@ -1,4 +1,26 @@
+#include <stdint.h>
 #include "cassini.h"
+
+typedef unsigned char BYTE;
+
+/* string is a uint32 field that contains :
+- the length `L` of the string (without the `0` at the end)
+- then the `L` bytes that are the contents of the string */
+typedef struct {
+  uint32_t length;
+  BYTE *s;
+} string;
+
+/* commandline contains :
+- argc = the length of the argc array
+- argv = an array of strings. argv[0] must contain the name of
+  the command and not be empty, the rest of the array contains the
+  arguments of the command. */
+typedef struct {
+  uint32_t argc;
+  string **argv;
+} commandline;
+
 
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
@@ -19,6 +41,64 @@ const char usage_info[] = "\
      -p PIPES_DIR -> look for the pipes in PIPES_DIR (default: /tmp/<USERNAME>/saturnd/pipes)\n\
 ";
 
+/*
+Parses a char* into a string* :
+- changes the char* into a BYTE and put the data into it
+  (without the trailing \0)
+- and computes the length of the string (still without the \0) into a uint32
+ */
+string* argToString (char* c) {
+  string *str = malloc(sizeof(string));
+
+  // length without the \0
+  str->length = strlen(c);
+
+  // copy the string into the array WITHOUT the trailling \0
+  str->s = malloc(str->length);
+  memcpy(c, str->s, str->length);
+
+  return str;
+}
+
+
+/*
+Parses the arguments given that were passed to cassini.
+The arguments are transformed from char* to string*.
+Returns a commandline struct that contains all the args, with the name of the 
+command as the first element of the array of string*.
+
+Exits the program with return code 1  if there isn't at least one argument 
+to parse (or if malloc fails).
+ */
+commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
+  if (optind < argc) {
+	// malloc the struct and the array
+    commandline *c = malloc(sizeof(commandline));
+	if (c == NULL) goto malloc_error;
+	c->argv = malloc(argc * sizeof(string));
+	if (argv == NULL) goto malloc_error;
+
+	// find the number of arguments
+	c->argc = argc - optind;
+
+	// put the arguments into strings and into the array
+	for(int i = 0; i < argc-optind; i++) {
+	  c->argv[i] = argToString(argv[optind+i]);
+	}
+	
+	return c;
+	
+  } else { // the user didn't give a command to execute
+    fprintf(stderr, "Missing a command name.\n %s", usage_info);
+    exit(1);
+  }
+
+ malloc_error:
+  fprintf(stderr, "Malloc failure\n");
+  exit(1);
+}
+
+
 int main(int argc, char * argv[]) {
   errno = 0;
   
@@ -29,6 +109,7 @@ int main(int argc, char * argv[]) {
   
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
+  commandline *command;
   
   int opt;
   char * strtoull_endp;
@@ -85,16 +166,31 @@ int main(int argc, char * argv[]) {
     }
   }
 
+  /* if creating a task, get all the command arguments */
+  if (operation == CLIENT_REQUEST_CREATE_TASK) {
+	command = get_commandline_arguments(argc, argv, optind);
+  }
+
+  /* at this point in the code :
+	 - operation contains the operation code
+	 - if needed, taskid contains the id of the task
+	 - if needed, command contains the command to create and its arguments
+   */
+
   // --------
-  // | TODO |
+  // | TODO : send the request & print results (if needed) 
   // --------
   
   return EXIT_SUCCESS;
 
- error:
-  if (errno != 0) perror("main");
-  free(pipes_directory);
-  pipes_directory = NULL;
-  return EXIT_FAILURE;
+
+  error:
+    if (errno != 0) perror("main");
+    free(pipes_directory);
+    pipes_directory = NULL;
+    return EXIT_FAILURE;
 }
+
+
+
 
