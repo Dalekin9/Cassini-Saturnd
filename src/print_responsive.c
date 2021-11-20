@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "cassini.h"
 #include "timing.h"
 
@@ -23,7 +24,7 @@ typedef struct {
 // -l
 void print_response_to_stdout_l (uint16_t reptype, uint32_t nb_task, task *t[]){
     for (int i = 0; i <  nb_task; i++){
-        fprintf(stdout, "%d: %lu %d %d " , t[i]->taskid, t[i]->t->minutes, t[i]->t->daysofweek, t[i]->t->daysofweek);
+        fprintf(stdout, "%d: %lu %d %d " , t[i]->taskid, t[i]->time->minutes, t[i]->time->daysofweek, t[i]->time->daysofweek);
         for (int j =0 ; j < t[i]->command.argc; j ++){
             fprintf(stdout, "%s ", t[i]->command.argv[j]->s);
         }
