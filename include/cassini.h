@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "client-request.h"
 #include "server-reply.h"

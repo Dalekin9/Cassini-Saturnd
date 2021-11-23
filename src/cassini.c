@@ -38,6 +38,27 @@ string* argToString (char* c) {
   return str;
 }
 
+void write_default_pipes_directory(char *pipes_directory) {
+	 // get the username (smaller than 200 chars)
+	 char *username = malloc(200 * sizeof(char));
+	 if (username == NULL) goto error;
+	 getlogin_r(username, 200);
+
+	 char buf1[] = "/tmp/";
+	 char buf2[] = "/saturnd/pipes";
+	 pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2))
+							  *sizeof(char));
+
+	 if (pipes_directory == NULL) goto error;
+	 strcpy(pipes_directory, buf1);
+	 strcat(pipes_directory, username);
+	 strcat(pipes_directory, buf2);
+
+	 error :
+	 perror("malloc failure\n");
+	 exit(EXIT_FAILURE);
+}
+
 
 /*
 Parses the arguments given that were passed to cassini.
@@ -139,9 +160,9 @@ int main(int argc, char * argv[]) {
     case 'h':
       printf("%s", usage_info);
       return 0;
-    case '?':
-      fprintf(stderr, "%s", usage_info);
-      goto error;
+//    case '?':
+//      fprintf(stderr, "%s", usage_info);
+//      goto error;
     }
   }
 
@@ -155,6 +176,10 @@ int main(int argc, char * argv[]) {
 	 - if needed, taskid contains the id of the task
 	 - if needed, command contains the command to create and its arguments
    */
+   if (pipes_directory == NULL) {
+	 write_default_pipes_directory(pipes_directory);
+   }
+
 
     /* Needs a timing ? */
     //write_request(pipedes, operation, taskid,  , command);
@@ -172,5 +197,9 @@ int main(int argc, char * argv[]) {
     free(pipes_directory);
     pipes_directory = NULL;
     return EXIT_FAILURE;
+
 }
+
+
+
 
