@@ -88,6 +88,7 @@ int main(int argc, char * argv[]) {
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
   commandline *command;
+  int pipedes;
 
   int opt;
   char * strtoull_endp;
@@ -155,14 +156,13 @@ int main(int argc, char * argv[]) {
 	 - if needed, command contains the command to create and its arguments
    */
 
-  // --------
-  // | TODO : send the request & print results (if needed)
-  // --------
+    /* Needs a timing ? */
+    //write_request(pipedes, operation, taskid,  , command);
 
-  //print in stdout/stderr infos
-  //an exemple to use the function
-  string a = {0,0};
-  print_response(operation, 0, 0, 0, 0, NULL ,NULL , a);
+    /* Prints on stdout and stderr are in the method  */
+    //read_answer(pipedes, operation);
+
+
 
   return EXIT_SUCCESS;
 
