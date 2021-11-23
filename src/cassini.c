@@ -1,26 +1,5 @@
 #include "cassini.h"
 
-typedef unsigned char BYTE;
-
-/* string is a uint32 field that contains :
-- the length `L` of the string (without the `0` at the end)
-- then the `L` bytes that are the contents of the string */
-typedef struct {
-  uint32_t length;
-  BYTE *s;
-} string;
-
-/* commandline contains :
-- argc = the length of the argc array
-- argv = an array of strings. argv[0] must contain the name of
-  the command and not be empty, the rest of the array contains the
-  arguments of the command. */
-typedef struct {
-  uint32_t argc;
-  string **argv;
-} commandline;
-
-
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
       or: cassini [OPTIONS]    -> same\n\
