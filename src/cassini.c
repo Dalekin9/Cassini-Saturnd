@@ -156,7 +156,7 @@ int main(int argc, char * argv[]) {
    */
 
   // --------
-  // | TODO :
+  // | TODO : send the request & print results (if needed)
   // --------
 
   //print in stdout/stderr infos
