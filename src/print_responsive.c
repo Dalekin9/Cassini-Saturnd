@@ -3,14 +3,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "include/cassini.h"
-#include "include/timing.h"
+#include "cassini.h"
+#include "timing.h"
+
+
+typedef struct {
+  uint32_t taskid;
+  struct timing *t;
+  commandline command;
+} task;
+
+
+typedef struct {
+  int64_t time;
+  uint16_t exitcode;
+} run;
 
 
 // -l
 void print_response_to_stdout_l (uint16_t reptype, uint32_t nb_task, task *t[]){
     for (int i = 0; i <  nb_task; i++){
-        fprintf(stdout, "%d: %lu %d %d " , t[i]->taskid, t[i]->time->minutes, t[i]->time->daysofweek, t[i]->time->daysofweek);
+        fprintf(stdout, "%d: %lu %d %d " , t[i]->taskid, t[i]->t->minutes, t[i]->t->daysofweek, t[i]->t->daysofweek);
         for (int j =0 ; j < t[i]->command.argc; j ++){
             fprintf(stdout, "%s ", t[i]->command.argv[j]->s);
         }
