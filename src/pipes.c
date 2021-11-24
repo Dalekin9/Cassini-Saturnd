@@ -3,18 +3,34 @@
 #include "timing-text-io.h"
 
 /* Stops the program when there's a reading error */
-void read_err(long readreturn){
+void is_read_error(long readreturn){
     if(readreturn < 0){
-        perror("Erreur de lecture");
-        exit(1);
+        perror("Reading error.\n");
+        exit(EXIT_FAILURE);
     }
 }
 
 /* Stops the program when there's a writing error */
-void write_err(long writereturn){
+void is_write_error(long writereturn){
     if(writereturn < 0){
-        perror("Erreur d'écriture'");
-        exit(1);
+        perror("Writing error.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+/* Stops the program if the file can't be opened.*/
+void is_open_error(int returnValue) {
+    if (returnValue == -1) {
+        perror("Can't open the pipe\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+/* Stops the program if malloc fails */
+void is_malloc_error(char *str) {
+    if (str == NULL) {
+        perror("Malloc error\n");
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -24,22 +40,18 @@ and writes it to *pipes_directory
 void write_default_pipes_directory(char *pipes_directory) {
 	 // get the username (smaller than 200 chars)
 	 char *username = malloc(200 * sizeof(char));
-	 if (username == NULL) goto error;
+     is_malloc_error(username);
 	 getlogin_r(username, 200);
 
 	 char buf1[] = "/tmp/";
 	 char buf2[] = "/saturnd/pipes/";
 	 pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2))
 							  *sizeof(char));
-
-	 if (pipes_directory == NULL) goto error;
+     is_malloc_error(pipes_directory);
 	 strcpy(pipes_directory, buf1);
 	 strcat(pipes_directory, username);
 	 strcat(pipes_directory, buf2);
 
-	 error :
-	 perror("malloc failure\n");
-	 exit(EXIT_FAILURE);
 }
 
 /* Writes the fully formed pipe names to the request_pipe and reply_pipe pointers.
@@ -53,11 +65,13 @@ void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pip
 
     char r[] = "saturnd-request-pipe";
     request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char));
+    is_malloc_error(request_pipe);
     strcopy(request_pipe, pipes_directory);
     strcat(request_pipe, r);
 
     char a[] = "saturnd-reply-pipe";
     reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char));
+    is_malloc_error(reply_pipe);
     strcopy(reply_pipe, pipes_directory);
     strcat(reply_pipe, a);
 }
@@ -69,39 +83,47 @@ void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pip
 void create_pipes(char *request_name, char *reply_name){
     if(mkfifo(request_name, O_RDWR) < 0){
         perror("Can't create RP");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
+
     if(mkfifo(reply_name, O_RDWR) < 0){
         perror("Can't create AP");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
-//Opens the reply pipe for reading
-int openRD_answers_pipe(){
-    return open("answers_pipe",O_RDONLY);
+/* Opens the reply pipe for reading. Program terminates on error. */
+int openRD_answers_pipe(char *reply_name){
+    int ret = open(reply_name, O_RDONLY);
+    is_open_error(ret);
+    return ret;
 }
 
-//Opens the reply pipe for writing
-int openWR_answers_pipe(){
-    return open("answers_pipe",O_RDONLY);
+/* Opens the reply pipe for writing. Program terminates on error. */
+int openWR_answers_pipe(char *reply_name){
+    int ret = open(reply_name, O_WRONLY);
+    is_open_error(ret);
+    return ret;
 }
 
-//Opens the request pipe for reading
-int openRD_requests_pipe(){
-    return open("answers_pipe",O_RDONLY);
+/* Opens the request pipe for reading. Program terminates on error. */
+int openRD_requests_pipe(char *request_name){
+    int ret = open(request_name, O_RDONLY);
+    is_open_error(ret);
+    return ret;
 }
 
-//Opens the request pipe for writing
-int openWR_requests_pipe(){
-    return open("answers_pipe",O_RDONLY);
+/* Opens the request pipe for writing. Program terminates on error. */
+int openWR_requests_pipe(char *request_name){
+    int ret = open(request_name, O_WRONLY);
+    is_open_error(ret);
+    return ret;
 }
 
 /*
  * Writes a request in the request pipe
- * What is written depends on ope's value
  */
-void write_request(int pipedes, uint16_t ope, uint64_t taskID, struct timing timing, commandline cmd){
+void write_request(int pipefd, uint16_t operation, uint64_t taskID, struct timing timing, commandline cmd){
     long args;
 
     switch (ope) {
