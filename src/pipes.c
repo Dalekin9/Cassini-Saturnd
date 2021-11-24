@@ -1,18 +1,19 @@
 #include "pipes.h"
 #include "cassini.h"
 #include "timing-text-io.h"
+#include "timing.h"
 
 /* Stops the program when there's a reading error */
-void is_read_error(long readreturn){
-    if(readreturn < 0){
+void is_read_error(long read_return){
+    if(read_return < 0){
         perror("Reading error.\n");
         exit(EXIT_FAILURE);
     }
 }
 
 /* Stops the program when there's a writing error */
-void is_write_error(long writereturn){
-    if(writereturn < 0){
+void is_write_error(long write_return){
+    if(write_return < 0){
         perror("Writing error.\n");
         exit(EXIT_FAILURE);
     }
@@ -66,13 +67,13 @@ void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pip
     char r[] = "saturnd-request-pipe";
     request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char));
     is_malloc_error(request_pipe);
-    strcopy(request_pipe, pipes_directory);
+    strcpy(request_pipe, pipes_directory);
     strcat(request_pipe, r);
 
     char a[] = "saturnd-reply-pipe";
     reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char));
     is_malloc_error(reply_pipe);
-    strcopy(reply_pipe, pipes_directory);
+    strcpy(reply_pipe, pipes_directory);
     strcat(reply_pipe, a);
 }
 
@@ -93,14 +94,14 @@ void create_pipes(char *request_name, char *reply_name){
 }
 
 /* Opens the reply pipe for reading. Program terminates on error. */
-int openRD_answers_pipe(char *reply_name){
+int openRD_reply_pipe(char *reply_name){
     int ret = open(reply_name, O_RDONLY);
     is_open_error(ret);
     return ret;
 }
 
 /* Opens the reply pipe for writing. Program terminates on error. */
-int openWR_answers_pipe(char *reply_name){
+int openWR_reply_pipe(char *reply_name){
     int ret = open(reply_name, O_WRONLY);
     is_open_error(ret);
     return ret;
@@ -120,87 +121,40 @@ int openWR_requests_pipe(char *request_name){
     return ret;
 }
 
-/*
- * Writes a request in the request pipe.
- * See protocol.md to see which arguments correspond to which operation type.
- * Arguments :
-    - pipefd : the fd of the pipe to write to
- */
-void write_request(int pipefd, uint16_t operation, uint64_t taskID, timing *timing, commandline *cmd){
-    long ret;
-    switch (operation) {
-        case CLIENT_REQUEST_LIST_TASKS:
-            ret = write(pipefd , CLIENT_REQUEST_LIST_TASKS, 16);
-            break;
+/* Opens the pipes for cassini :
+- the request pipe with WRITE permissions in fd[1]
+- the reply pipe with READ permissions in fd[0]
+If the files don't exist or can't be opened, the program terminates.
 
-        case CLIENT_REQUEST_CREATE_TASK:
-            ret = write_create_request(pipefd, operation, timing, cmd);
-            break;
+Arguments :
+- fd : where to store the fds
+- pipes_directory : the name of the directory where the pipes are store.
+    If this is NULL, it will be filled with the default value.
+*/
+void open_pipes_cassini(int* fd, char *pipes_directory) {
+    // get the pathnames of the pipes
+    char *request_pipe_name;
+    char *reply_pipe_name;
+    find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
 
-        case CLIENT_REQUEST_TERMINATE:
-            ret = write(pipefd, CLIENT_REQUEST_TERMINATE, 16));
-            break;
+    // init the fd array
+    int ret = malloc(fd, 2*sizeof(int));
+    is_malloc_error(ret);
 
-        case CLIENT_REQUEST_REMOVE_TASK:
-            BYTE buf[16+64];
-            strcpy(buf, CLIENT_REQUEST_REMOVE_TASK);
-            strcpy(*buf+64, taskID);
-            ret = write(pipefd, buf, 16+64);
-            break;
-
-        case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:
-            BYTE buf[16+64];
-            strcpy(buf, CLIENT_REQUEST_GET_TIMES_AND_EXITCODES);
-            strcpy(*buf+64, taskID);
-            ret = write(pipefd, buf, 16+64);
-            break;
-
-        case CLIENT_REQUEST_GET_STDOUT:
-            BYTE buf[16+64];
-            strcpy(buf, CLIENT_REQUEST_GET_STDOUT);
-            strcpy(*buf+64, taskID);
-            ret = write(pipefd, buf, 16+64);
-            break;
-
-        case CLIENT_REQUEST_GET_STDERR:
-            BYTE buf[16+64];
-            strcpy(buf, CLIENT_REQUEST_GET_STDERR);
-            strcpy(*buf+64, taskID);
-            ret = write(pipefd, buf, 16+64);
-            break;
-    }
-    is_write_error(ret);
+    // open the pipes
+    fd[0] = openRD_reply_pipe(reply_pipe_name);
+    fd[1] = openWR_requests_pipe(request_pipe_name);
 }
 
-int write_create_request(int pipefd, int operation, timing* t, commandline* command) {
-    // compute the total length of the request
-    int length = 16 + (64+32+8) + 32; // 16=operation; (...)=t; 32=argc
-    for (int i = 0; i < cmd->argc; ++i) { // for each element of command,
-                                     // add the length of the string + 32 (storing the length)
-      length += 32 + cmd.argv[i]->length;
-    }
+void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
+    // get the pathnames of the pipes
+    char *request_pipe_name;
+    char *reply_pipe_name;
+    find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
 
-    // create the request
-    int current = 0;
-    BYTE buf[length];
-    strcpy(buf, operation, 16);
-    current += 16;
-    // copy the timing
-    strcpy(*buf+current, t->minutes, 64);
-    current += 64;
-    strcpy(*buf+current, t->hours, 32);
-    current += 32;
-    strcpy(*buf+current, t->daysofweek, 8);
-    current += 8;
-    strcpy(*buf+current, command->argc, 32);
-    // copy command->argv
-    for (int i = 0; i < cmd->argc, i++) {
-        string *str = command->argv[i];
-        strcpy(*buf+current, str->length);
-        current += 32;
-        strcpy(*buf+current, str->s);
-        current += str->length;
-    }
+    // init the fd array
+    int ret = malloc(fd, 2*sizeof(int));
+    is_malloc_error(ret);
 
-    return write(pipefd, buf, length);
 }
+
