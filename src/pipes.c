@@ -142,23 +142,31 @@ void write_request(int pipefd, uint16_t operation, uint64_t taskID, timing *timi
             break;
 
         case CLIENT_REQUEST_REMOVE_TASK:
-            write_err(write(pipedes,"0101001001001101", 16)); //0x524d
-            write_err(write(pipedes, &taskID,64));
+            BYTE buf[16+64];
+            strcpy(buf, CLIENT_REQUEST_REMOVE_TASK);
+            strcpy(*buf+64, taskID);
+            ret = write(pipefd, buf, 16+64);
             break;
 
         case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:
-            write_err(write(pipedes,"0101010001011000", 16)); //0x5458
-            write_err(write(pipedes, &taskID,64));
+            BYTE buf[16+64];
+            strcpy(buf, CLIENT_REQUEST_GET_TIMES_AND_EXITCODES);
+            strcpy(*buf+64, taskID);
+            ret = write(pipefd, buf, 16+64);
             break;
 
         case CLIENT_REQUEST_GET_STDOUT:
-            write_err(write(pipedes,"0101001101001111", 16)); //0x534f
-            write_err(write(pipedes, &taskID,64));
+            BYTE buf[16+64];
+            strcpy(buf, CLIENT_REQUEST_GET_STDOUT);
+            strcpy(*buf+64, taskID);
+            ret = write(pipefd, buf, 16+64);
             break;
 
         case CLIENT_REQUEST_GET_STDERR:
-            write_err(write(pipedes,"0101001101000101", 16)); //0x5345
-            write_err(write(pipedes, &taskID,64));
+            BYTE buf[16+64];
+            strcpy(buf, CLIENT_REQUEST_GET_STDERR);
+            strcpy(*buf+64, taskID);
+            ret = write(pipefd, buf, 16+64);
             break;
     }
     is_write_error(ret);
