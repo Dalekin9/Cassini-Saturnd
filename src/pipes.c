@@ -1,10 +1,8 @@
-#include <unistd.h>
-#include <fcntl.h>
+#include "pipes.h"
 #include "cassini.h"
 #include "timing-text-io.h"
 
-
-// Stops the program when there's a reading error
+/* Stops the program when there's a reading error */
 void read_err(long readreturn){
     if(readreturn < 0){
         perror("Erreur de lecture");
@@ -12,7 +10,7 @@ void read_err(long readreturn){
     }
 }
 
-// Stops the program when there's a writing error
+/* Stops the program when there's a writing error */
 void write_err(long writereturn){
     if(writereturn < 0){
         perror("Erreur d'écriture'");
@@ -20,16 +18,60 @@ void write_err(long writereturn){
     }
 }
 
-/*
- * Creates a reply and a request pipe if there's no error
- * (Error if the path isn't valid or accessible)
+/* Finds the default path for the pipes directory : "/tmp/<USERNAME>/saturnd/pipes"
+and writes it to *pipes_directory
+*/
+void write_default_pipes_directory(char *pipes_directory) {
+	 // get the username (smaller than 200 chars)
+	 char *username = malloc(200 * sizeof(char));
+	 if (username == NULL) goto error;
+	 getlogin_r(username, 200);
+
+	 char buf1[] = "/tmp/";
+	 char buf2[] = "/saturnd/pipes/";
+	 pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2))
+							  *sizeof(char));
+
+	 if (pipes_directory == NULL) goto error;
+	 strcpy(pipes_directory, buf1);
+	 strcat(pipes_directory, username);
+	 strcat(pipes_directory, buf2);
+
+	 error :
+	 perror("malloc failure\n");
+	 exit(EXIT_FAILURE);
+}
+
+/* Writes the fully formed pipe names to the request_pipe and reply_pipe pointers.
+- request_pipe = "/tmp/<USERNAME>/saturnd/pipes/saturnd-request-pipe"
+- answer_pipe = "/tmp/<USERNAME>/saturnd/pipes/saturnd-reply-pipe"
+*/
+void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pipe) {
+    if (pipes_directory == NULL) {
+        write_default_pipes_directory(pipes_directory);
+    }
+
+    char r[] = "saturnd-request-pipe";
+    request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char));
+    strcopy(request_pipe, pipes_directory);
+    strcat(request_pipe, r);
+
+    char a[] = "saturnd-reply-pipe";
+    reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char));
+    strcopy(reply_pipe, pipes_directory);
+    strcat(reply_pipe, a);
+}
+
+/* Creates the pipes (for the request and the reply), assuming they
+ * don't already exist.
+ * Ends the program on error (if the path isn't valid or accessible).
  */
-void create_pipes(){
-    if(mkfifo("/tmp/<USER_NAME>/saturnd/pipes/saturnd-request-pipe",O_RDWR) < 0){
+void create_pipes(char *request_name, char *reply_name){
+    if(mkfifo(request_name, O_RDWR) < 0){
         perror("Can't create RP");
         exit(1);
     }
-    if(mkfifo("/tmp/<USER_NAME>/saturnd/pipes/saturnd-reply-pipe",O_RDWR) < 0){
+    if(mkfifo(reply_name, O_RDWR) < 0){
         perror("Can't create AP");
         exit(1);
     }

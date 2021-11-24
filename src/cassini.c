@@ -38,26 +38,6 @@ string* argToString (char* c) {
   return str;
 }
 
-void write_default_pipes_directory(char *pipes_directory) {
-	 // get the username (smaller than 200 chars)
-	 char *username = malloc(200 * sizeof(char));
-	 if (username == NULL) goto error;
-	 getlogin_r(username, 200);
-
-	 char buf1[] = "/tmp/";
-	 char buf2[] = "/saturnd/pipes";
-	 pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2))
-							  *sizeof(char));
-
-	 if (pipes_directory == NULL) goto error;
-	 strcpy(pipes_directory, buf1);
-	 strcat(pipes_directory, username);
-	 strcat(pipes_directory, buf2);
-
-	 error :
-	 perror("malloc failure\n");
-	 exit(EXIT_FAILURE);
-}
 
 
 /*
@@ -109,7 +89,7 @@ int main(int argc, char * argv[]) {
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
   commandline *command;
-  int pipedes;
+  int pipesfd[];
 
   int opt;
   char * strtoull_endp;
@@ -171,22 +151,16 @@ int main(int argc, char * argv[]) {
 	command = get_commandline_arguments(argc, argv, optind);
   }
 
-  /* at this point in the code :
-	 - operation contains the operation code
-	 - if needed, taskid contains the id of the task
-	 - if needed, command contains the command to create and its arguments
-   */
-   if (pipes_directory == NULL) {
-	 write_default_pipes_directory(pipes_directory);
-   }
+//   if (pipes_directory == NULL) {
+//	 write_default_pipes_directory(pipes_directory);
+//   }
 
 
     /* Needs a timing ? */
-    //write_request(pipedes, operation, taskid,  , command);
+    //write_request(pipesfd[1], operation, taskid,  , command);
 
     /* Prints on stdout and stderr are in the method  */
-    //read_answer(pipedes, operation);
-
+    //read_answer(pipesfd[0], operation);
 
 
   return EXIT_SUCCESS;
