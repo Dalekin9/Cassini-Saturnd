@@ -1,20 +1,6 @@
 #include "pipes.h"
 
-/* Stops the program when there's a reading error */
-void is_read_error(long read_return){
-    if(read_return < 0){
-        perror("Reading error.\n");
-        exit(EXIT_FAILURE);
-    }
-}
 
-/* Stops the program when there's a writing error */
-void is_write_error(long write_return){
-    if(write_return < 0){
-        perror("Writing error.\n");
-        exit(EXIT_FAILURE);
-    }
-}
 
 /* Stops the program if the file can't be opened.*/
 void is_open_error(int returnValue) {
@@ -143,8 +129,11 @@ void open_pipes_cassini(int* fd, char *pipes_directory) {
     find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
 
     // init the fd array
-    int ret = malloc(fd, 2*sizeof(int));
-    is_malloc_error(ret);
+    fd = malloc(2*sizeof(int));
+    if (fd == NULL) {
+        perror("Malloc failure\n");
+        exit(EXIT_FAILURE);
+    }
 
     // open the pipes
     fd[0] = openRD_reply_pipe(reply_pipe_name);
@@ -169,11 +158,14 @@ void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
     find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
 
     // init the fd array
-    int ret = malloc(fd, 2*sizeof(int));
-    is_malloc_error(ret);
+    fd = malloc(2*sizeof(int));
+    if (fd == NULL) {
+        perror("Malloc failure\n");
+        exit(EXIT_FAILURE);
+    }
 
     // open or create the pipes
     fd[1] = openWR_or_create_reply_pipe(reply_pipe_name);
-    fd[0] = openRD__or_create_requests_pipe(request_pipe_name);
+    fd[0] = openRD_or_create_requests_pipe(request_pipe_name);
 }
 

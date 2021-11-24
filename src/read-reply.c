@@ -1,4 +1,13 @@
 //
+//
+///* Stops the program when there's a reading error */
+//void is_read_error(long read_return){
+//    if(read_return < 0){
+//        perror("Reading error.\n");
+//        exit(EXIT_FAILURE);
+//    }
+//}
+
 ///* Reads from the reply pipe when a response to -l ; returns a task list */
 //task **read_list_task(int pipedes, long taskNb){
 //    task **tasks = malloc(sizeof(**tasks));

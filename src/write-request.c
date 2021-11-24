@@ -1,8 +1,18 @@
+#include "write-request.h"
+
 /*
 This file contains the methods to format a request into a BYTE array
 and to write them into the requests tube.
 */
 
+
+/* Stops the program when there's a writing error */
+void is_write_error(long write_return){
+    if(write_return < 0){
+        perror("Writing error.\n");
+        exit(EXIT_FAILURE);
+    }
+}
 
 /*
 Formats the request to create a new task and writes it into the requests pipe.
