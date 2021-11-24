@@ -31,7 +31,7 @@ string* argToString (char* c) {
   // length without the \0
   str->length = strlen(c);
 
-  // copy the string into the array WITHOUT the trailling \0
+  // copy the string into the array WITHOUT the trailing \0
   str->s = malloc(str->length);
   memcpy(c, str->s, str->length);
 
@@ -46,7 +46,7 @@ The arguments are transformed from char* to string*.
 Returns a commandline struct that contains all the args, with the name of the
 command as the first element of the array of string*.
 
-Exits the program with return code 1  if there isn't at least one argument
+Exits the program with return code 1 if there isn't at least one argument
 to parse (or if malloc fails).
  */
 commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
@@ -89,7 +89,8 @@ int main(int argc, char * argv[]) {
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
   commandline *command;
-  int pipesfd[2];
+  int pipes_fd[2];
+  struct timing *t;
 
   int opt;
   char * strtoull_endp;
@@ -146,22 +147,21 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  /* if creating a task, get all the command arguments */
+  // if creating a task, fill the struct with the data
+  // and get all the command arguments
   if (operation == CLIENT_REQUEST_CREATE_TASK) {
-	command = get_commandline_arguments(argc, argv, optind);
+    int ret = timing_from_strings(t, minutes_str, hours_str, daysofweek_str);
+    if (ret == -1) goto error;
+    command = get_commandline_arguments(argc, argv, optind);
   }
 
-//   if (pipes_directory == NULL) {
-//	 write_default_pipes_directory(pipes_directory);
-//   }
+    // open the pipes
+    open_pipes_cassini(pipes_fd, pipes_directory);
 
+    // write the request
+    write_request(pipes_fd[1], operation, taskid, t, command);
 
-    /* Needs a timing ? */
-    //write_request(pipesfd[1], operation, taskid,  , command);
-
-    /* Prints on stdout and stderr are in the method  */
-    //read_answer(pipesfd[0], operation);
-
+    // TODO : read and print the response
 
   return EXIT_SUCCESS;
 
@@ -171,7 +171,6 @@ int main(int argc, char * argv[]) {
     free(pipes_directory);
     pipes_directory = NULL;
     return EXIT_FAILURE;
-
 }
 
 
