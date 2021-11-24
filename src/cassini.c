@@ -89,7 +89,7 @@ int main(int argc, char * argv[]) {
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
   commandline *command;
-  int pipesfd[];
+  int pipesfd[2];
 
   int opt;
   char * strtoull_endp;

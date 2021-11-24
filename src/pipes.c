@@ -121,33 +121,24 @@ int openWR_requests_pipe(char *request_name){
 }
 
 /*
- * Writes a request in the request pipe
+ * Writes a request in the request pipe.
+ * See protocol.md to see which arguments correspond to which operation type.
+ * Arguments :
+    - pipefd : the fd of the pipe to write to
  */
-void write_request(int pipefd, uint16_t operation, uint64_t taskID, struct timing timing, commandline cmd){
-    long args;
-
-    switch (ope) {
+void write_request(int pipefd, uint16_t operation, uint64_t taskID, timing *timing, commandline *cmd){
+    long ret;
+    switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS:
-            write_err(write(pipedes,"0100110001010011", 16)); // 0x4c53
+            ret = write(pipefd , CLIENT_REQUEST_LIST_TASKS, 16);
             break;
 
         case CLIENT_REQUEST_CREATE_TASK:
-            args = (long) &cmd.argc;
-            write_err(write(pipedes,"0100001101010010", 16)); //0x4352
-
-            write_err(write(pipedes, &timing.minutes, 64));
-            write_err(write(pipedes, &timing.hours, 32));
-            write_err(write(pipedes, &timing.daysofweek, 8));
-
-            write_err(write(pipedes, &cmd.argc, 32));
-            for (int i = 0; i < args; ++i) {
-                write_err(write(pipedes, &cmd.argv[i]->length, 32));
-                write_err(write(pipedes, &cmd.argv[i]->s, (cmd.argv[i]->length)*2*8));
-            }
+            ret = write_create_request(pipefd, operation, timing, cmd);
             break;
 
         case CLIENT_REQUEST_TERMINATE:
-            write_err(write(pipedes,"0100101101001001", 16)); //0x4b49
+            ret = write(pipefd, CLIENT_REQUEST_TERMINATE, 16));
             break;
 
         case CLIENT_REQUEST_REMOVE_TASK:
@@ -169,10 +160,41 @@ void write_request(int pipefd, uint16_t operation, uint64_t taskID, struct timin
             write_err(write(pipedes,"0101001101000101", 16)); //0x5345
             write_err(write(pipedes, &taskID,64));
             break;
-        default:
-            perror("?");
-            exit(1);
     }
+    is_write_error(ret);
+}
+
+int write_create_request(int pipefd, int operation, timing* t, commandline* command) {
+    // compute the total length of the request
+    int length = 16 + (64+32+8) + 32; // 16=operation; (...)=t; 32=argc
+    for (int i = 0; i < cmd->argc; ++i) { // for each element of command,
+                                     // add the length of the string + 32 (storing the length)
+      length += 32 + cmd.argv[i]->length;
+    }
+
+    // create the request
+    int current = 0;
+    BYTE buf[length];
+    strcpy(buf, operation, 16);
+    current += 16;
+    // copy the timing
+    strcpy(*buf+current, t->minutes, 64);
+    current += 64;
+    strcpy(*buf+current, t->hours, 32);
+    current += 32;
+    strcpy(*buf+current, t->daysofweek, 8);
+    current += 8;
+    strcpy(*buf+current, command->argc, 32);
+    // copy command->argv
+    for (int i = 0; i < cmd->argc, i++) {
+        string *str = command->argv[i];
+        strcpy(*buf+current, str->length);
+        current += 32;
+        strcpy(*buf+current, str->s);
+        current += str->length;
+    }
+
+    return write(pipefd, buf, length);
 }
 
 /* Reads from the reply pipe when a response to -l ; returns a task list */
