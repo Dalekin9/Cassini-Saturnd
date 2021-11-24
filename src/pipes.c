@@ -1,7 +1,4 @@
 #include "pipes.h"
-#include "cassini.h"
-#include "timing-text-io.h"
-#include "timing.h"
 
 /* Stops the program when there's a reading error */
 void is_read_error(long read_return){
@@ -77,18 +74,13 @@ void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pip
     strcat(reply_pipe, a);
 }
 
-/* Creates the pipes (for the request and the reply), assuming they
- * don't already exist.
- * Ends the program on error (if the path isn't valid or accessible).
+/* Creates a pipe with READ and WRITE instructions
+- pipe_name : the pathname to the pipe
+Program terminates if the pipe can't be created.
  */
-void create_pipes(char *request_name, char *reply_name){
-    if(mkfifo(request_name, O_RDWR) < 0){
-        perror("Can't create RP");
-        exit(EXIT_FAILURE);
-    }
-
-    if(mkfifo(reply_name, O_RDWR) < 0){
-        perror("Can't create AP");
+void create_pipe(char *pipe_name){
+    if(mkfifo(pipe_name, O_RDWR) < 0){
+        fprintf(stderr, "Can't create the pipe %s\n", pipe_name);
         exit(EXIT_FAILURE);
     }
 }
@@ -100,19 +92,32 @@ int openRD_reply_pipe(char *reply_name){
     return ret;
 }
 
-/* Opens the reply pipe for writing. Program terminates on error. */
-int openWR_reply_pipe(char *reply_name){
+/* Opens the reply pipe for writing.
+If the pipe can't be opened, the program tries to create it and then open it.
+Program terminates if the last opening fails. */
+int openWR_or_create_reply_pipe(char *reply_name){
     int ret = open(reply_name, O_WRONLY);
-    is_open_error(ret);
+    if (ret == -1) {
+       create_pipe(reply_name);
+       ret = open(reply_name, O_WRONLY);
+       is_open_error(ret);
+    }
     return ret;
 }
 
-/* Opens the request pipe for reading. Program terminates on error. */
-int openRD_requests_pipe(char *request_name){
+/* Opens the request pipe for reading.
+If the pipe can't be opened, the program tries to create it and then open it.
+Program terminates if the last opening fails. */
+int openRD_or_create_requests_pipe(char *request_name){
     int ret = open(request_name, O_RDONLY);
-    is_open_error(ret);
+    if (ret == -1) {
+       create_pipe(request_name);
+       ret = open(request_name, O_RDONLY);
+       is_open_error(ret);
+    }
     return ret;
 }
+
 
 /* Opens the request pipe for writing. Program terminates on error. */
 int openWR_requests_pipe(char *request_name){
@@ -146,8 +151,19 @@ void open_pipes_cassini(int* fd, char *pipes_directory) {
     fd[1] = openWR_requests_pipe(request_pipe_name);
 }
 
+/* Opens the pipes for cassini :
+- the reply pipe with READ permissions in fd[0]
+- the request pipe with WRITE permissions in fd[1]
+If the files can't be opened, they are created and then opened.
+Program terminates if the last opening fails.
+
+Arguments :
+- fd : where to store the fds
+- pipes_directory : the name of the directory where the pipes are store.
+    If this is NULL, it will be filled with the default value.
+*/
 void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
-    // get the pathnames of the pipes
+    // get the path names of the pipes
     char *request_pipe_name;
     char *reply_pipe_name;
     find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
@@ -156,5 +172,8 @@ void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
     int ret = malloc(fd, 2*sizeof(int));
     is_malloc_error(ret);
 
+    // open or create the pipes
+    fd[1] = openWR_or_create_reply_pipe(reply_pipe_name);
+    fd[0] = openRD__or_create_requests_pipe(request_pipe_name);
 }
 
