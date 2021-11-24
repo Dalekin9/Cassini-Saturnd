@@ -18,7 +18,7 @@ LIBINCLUDE = include
 CFLAGS += -I$(LIBINCLUDE)
 
 # all the object files cassini needs
-CASSINI_OBJFILES = src/cassini.o src/timing-text-io.o src/print_daemon_response.o
+CASSINI_OBJFILES = src/cassini.o src/timing-text-io.o src/print_daemon_response.o src/pipes.o
 
 # all the object files saturnd needs
 SATURND_OBJFILES =
