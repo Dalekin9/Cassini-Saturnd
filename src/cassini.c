@@ -161,7 +161,8 @@ int main(int argc, char * argv[]) {
     // write the request
     write_request(pipes_fd[1], operation, taskid, t, command);
 
-    // TODO : read and print the response
+    // read and print the response
+    read_answer(pipes_fd[0], operation);
 
   return EXIT_SUCCESS;
 
