@@ -59,7 +59,7 @@ void write_request(int pipefd, uint16_t operation, uint64_t taskID, struct timin
     long ret;
     switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS:
-            ret = write(pipefd , &operation, 2);
+            ret = write(pipefd , &operation, sizeof(uint16_t));
             break;
 
         case CLIENT_REQUEST_CREATE_TASK:

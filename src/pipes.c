@@ -42,23 +42,83 @@ void write_default_pipes_directory(char *pipes_directory) {
 - request_pipe = "/tmp/<USERNAME>/saturnd/pipes/saturnd-request-pipe"
 - answer_pipe = "/tmp/<USERNAME>/saturnd/pipes/saturnd-reply-pipe"
 */
-void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pipe) {
-    if (pipes_directory == NULL) {
-        write_default_pipes_directory(pipes_directory);
+char *get_reply_pipe_name(char *pipes_directory) {
+    char basename[] = "saturnd-reply-pipe";
+    char slash[] = "/";
+    char *reply_pipe;
+
+    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
+       reply_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
+       is_malloc_error(reply_pipe);
+       strcpy(reply_pipe, pipes_directory);
+    } else { // need to add a "/" between dir name and basename
+       reply_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
+       is_malloc_error(reply_pipe);
+       strcpy(reply_pipe, pipes_directory);
+       strcat(reply_pipe, slash);
     }
-
-    char r[] = "saturnd-request-pipe";
-    request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char));
-    is_malloc_error(request_pipe);
-    strcpy(request_pipe, pipes_directory);
-    strcat(request_pipe, r);
-
-    char a[] = "saturnd-reply-pipe";
-    reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char));
-    is_malloc_error(reply_pipe);
-    strcpy(reply_pipe, pipes_directory);
-    strcat(reply_pipe, a);
+    strcat(reply_pipe, basename);
+    return reply_pipe;
 }
+
+char *get_request_pipe_name(char *pipes_directory) {
+    char basename[] = "saturnd-request-pipe";
+    char slash[] = "/";
+    char *request_pipe;
+
+    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
+       request_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
+       is_malloc_error(request_pipe);
+       strcpy(request_pipe, pipes_directory);
+    } else { // need to add a "/" between dir name and basename
+       request_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
+       is_malloc_error(request_pipe);
+       strcpy(request_pipe, pipes_directory);
+       strcat(request_pipe, slash);
+    }
+    strcat(request_pipe, basename);
+    return request_pipe;
+}
+
+//void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pipe) {
+//    if (pipes_directory == NULL) {
+//        write_default_pipes_directory(pipes_directory);
+//    }
+//
+//    char r[] = "saturnd-request-pipe";
+//    char a[] = "saturnd-reply-pipe";
+//    char slash[] = "/";
+//    // copy the dir name
+//    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
+//        // request pipe
+//        request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char) + 1);
+//        is_malloc_error(request_pipe);
+//        strcpy(request_pipe, pipes_directory);
+//
+//        // reply pipe
+//        reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char) + 1);
+//        is_malloc_error(reply_pipe);
+//        strcpy(reply_pipe, pipes_directory);
+//    } else { // need to add a "/" between dir name and basename
+//        // request pipe
+//        request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char) + 2);
+//        is_malloc_error(request_pipe);
+//        strcpy(request_pipe, pipes_directory);
+//        strcat(request_pipe, slash);
+//        // reply pipe
+//        reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char) + 2);
+//        is_malloc_error(reply_pipe);
+//        strcpy(reply_pipe, pipes_directory);
+//        strcat(reply_pipe, slash);
+//    }
+//
+//    // copy the basename
+//    strcat(request_pipe, r);
+//    strcat(reply_pipe, a);
+//
+//    fprintf(stdout, "request : %s\n", request_pipe);
+//    fprintf(stdout, "reply : %s\n", reply_pipe);
+//}
 
 /* Creates a pipe with READ and WRITE instructions
 - pipe_name : the pathname to the pipe
@@ -73,8 +133,11 @@ void create_pipe(char *pipe_name){
 
 /* Opens the reply pipe for reading. Program terminates on error. */
 int openRD_reply_pipe(char *reply_name){
+    fprintf(stdout, "a\n");
     int ret = open(reply_name, O_RDONLY);
+    fprintf(stdout, "b\n");
     is_open_error(ret);
+    fprintf(stdout, "c\n");
     return ret;
 }
 
@@ -123,21 +186,23 @@ Arguments :
     If this is NULL, it will be filled with the default value.
 */
 void open_pipes_cassini(int* fd, char *pipes_directory) {
-    // get the pathnames of the pipes
-    char *request_pipe_name;
-    char *reply_pipe_name;
-    find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
-
-    // init the fd array
-    fd = malloc(2*sizeof(int));
-    if (fd == NULL) {
-        perror("Malloc failure\n");
-        exit(EXIT_FAILURE);
+    if (pipes_directory == NULL) {
+        write_default_pipes_directory(pipes_directory);
     }
+    // get the path names of the pipes
+    char *request_pipe_name = get_request_pipe_name(pipes_directory);
+    char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
+
+    fprintf(stdout, "PIPES DIR : %s\n", pipes_directory);
+    fprintf(stdout, "REP : %s\n", reply_pipe_name);
+    fprintf(stdout, "REQ : %s\n", request_pipe_name);
 
     // open the pipes
     fd[0] = openRD_reply_pipe(reply_pipe_name);
+    fprintf(stdout, "opened reply\n");
     fd[1] = openWR_requests_pipe(request_pipe_name);
+
+    fprintf(stdout, "Opened pipes\n");
 }
 
 /* Opens the pipes for cassini :
@@ -152,10 +217,12 @@ Arguments :
     If this is NULL, it will be filled with the default value.
 */
 void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
+    if (pipes_directory == NULL) {
+        write_default_pipes_directory(pipes_directory);
+    }
     // get the path names of the pipes
-    char *request_pipe_name;
-    char *reply_pipe_name;
-    find_pipes_names(pipes_directory, request_pipe_name, reply_pipe_name);
+    char *request_pipe_name = get_request_pipe_name(pipes_directory);
+    char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
 
     // init the fd array
     fd = malloc(2*sizeof(int));
