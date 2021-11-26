@@ -133,11 +133,8 @@ void create_pipe(char *pipe_name){
 
 /* Opens the reply pipe for reading. Program terminates on error. */
 int openRD_reply_pipe(char *reply_name){
-    fprintf(stdout, "a\n");
     int ret = open(reply_name, O_RDONLY);
-    fprintf(stdout, "b\n");
     is_open_error(ret);
-    fprintf(stdout, "c\n");
     return ret;
 }
 
@@ -193,16 +190,9 @@ void open_pipes_cassini(int* fd, char *pipes_directory) {
     char *request_pipe_name = get_request_pipe_name(pipes_directory);
     char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
 
-    fprintf(stdout, "PIPES DIR : %s\n", pipes_directory);
-    fprintf(stdout, "REP : %s\n", reply_pipe_name);
-    fprintf(stdout, "REQ : %s\n", request_pipe_name);
-
     // open the pipes
     fd[0] = openRD_reply_pipe(reply_pipe_name);
-    fprintf(stdout, "opened reply\n");
     fd[1] = openWR_requests_pipe(request_pipe_name);
-
-    fprintf(stdout, "Opened pipes\n");
 }
 
 /* Opens the pipes for cassini :
@@ -223,13 +213,6 @@ void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
     // get the path names of the pipes
     char *request_pipe_name = get_request_pipe_name(pipes_directory);
     char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
-
-    // init the fd array
-    fd = malloc(2*sizeof(int));
-    if (fd == NULL) {
-        perror("Malloc failure\n");
-        exit(EXIT_FAILURE);
-    }
 
     // open or create the pipes
     fd[1] = openWR_or_create_reply_pipe(reply_pipe_name);
