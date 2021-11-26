@@ -71,33 +71,37 @@ void write_request(int pipefd, uint16_t operation, uint64_t taskID, struct timin
             ret = write(pipefd, &opcode, 2);
             break;
 
-        case CLIENT_REQUEST_REMOVE_TASK:
+        case CLIENT_REQUEST_REMOVE_TASK:{
             BYTE buf[2+8];
             memcpy(buf, &opcode, 2);
             memcpy(buf+8, &taskID, 8);
             ret = write(pipefd, buf, 2+8);
             break;
+            }
 
-        case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:
+        case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:{
             BYTE buf2[2+8];
             memcpy(buf2, &opcode, 2);
             memcpy(buf2+8, &taskID, 8);
             ret = write(pipefd, buf2, 2+8);
             break;
+            }
 
-        case CLIENT_REQUEST_GET_STDOUT:
+        case CLIENT_REQUEST_GET_STDOUT:{
             BYTE buf3[2+8];
             memcpy(buf3, &opcode, 2);
             memcpy(buf3+8, &taskID, 8);
             ret = write(pipefd, buf3, 2+8);
             break;
+            }
 
-        case CLIENT_REQUEST_GET_STDERR:
+        case CLIENT_REQUEST_GET_STDERR:{
             BYTE buf4[2+8];
             memcpy(buf4, &opcode, 2);
             memcpy(buf4+2, &taskID, 8);
             ret = write(pipefd, buf4, 2+8);
             break;
+            }
     }
     is_write_error(ret);
 }
