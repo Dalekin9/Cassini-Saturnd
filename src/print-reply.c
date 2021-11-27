@@ -1,5 +1,4 @@
-#include "cassini.h"
-#include "timing.h"
+#include "print-reply.h"
 
 /*
 This file contains all the methods to format and write the
@@ -16,8 +15,8 @@ void print_l (uint16_t reptype, uint32_t nb_task, task *t[]){
     for (int i = 0; i <  nb_task; i++){
         fprintf(stdout, "%d: %lu %d %d " , t[i]->taskid, t[i]->t->minutes,
                 t[i]->t->daysofweek, t[i]->t->daysofweek);
-        for (int j =0 ; j < t[i]->command.argc; j ++){
-            fprintf(stdout, "%s ", t[i]->command.argv[j]->s);
+        for (int j =0 ; j < t[i]->command->argc; j ++){
+            fprintf(stdout, "%s ", t[i]->command->argv[j]->s);
         }
         fprintf(stdout, "\n");
     }
@@ -52,8 +51,7 @@ See protocol.md for further description of the response.
 - r : an array of the running process (can be null)
 - output : the string that the process wrote to stdout (can be null)
 */
-void print_response( uint16_t operation, uint16_t reptype, uint16_t error, uint32_t nb_run_task,
-                     uint64_t taskid, task *t[], run *r[], string output) {
+void print_reply(uint16_t operation, uint16_t reptype, uint16_t error, uint32_t nb_run_task, uint64_t taskid, task *t[], run *r[], string *output) {
     switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS : // -l
             print_l(reptype, nb_run_task, t);
@@ -76,7 +74,7 @@ void print_response( uint16_t operation, uint16_t reptype, uint16_t error, uint3
             }
             break;
         case CLIENT_REQUEST_GET_STDOUT : // -o
-            fprintf(stdout, "%s\n", output.s);
+            fprintf(stdout, "%s\n", output->s);
             break;
         case CLIENT_REQUEST_GET_STDERR : // -e
             print_e(reptype, error);

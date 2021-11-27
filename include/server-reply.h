@@ -33,10 +33,11 @@ typedef struct {
 - command : the command that should be run and all its arguments
             (see the commandline struct for more info)
 */
+
 typedef struct {
   uint32_t taskid;
   struct timing *t;
-  commandline command;
+  commandline *command;
 } task;
 
 

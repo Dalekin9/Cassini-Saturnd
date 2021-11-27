@@ -104,4 +104,5 @@ void write_request(int pipefd, uint16_t operation, uint64_t taskID, struct timin
             }
     }
     is_write_error(ret);
+    close(pipefd);
 }

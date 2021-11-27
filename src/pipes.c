@@ -19,9 +19,9 @@ void is_malloc_error(char *str) {
 }
 
 /* Finds the default path for the pipes directory : "/tmp/<USERNAME>/saturnd/pipes"
-and writes it to *pipes_directory
+and returns it
 */
-void write_default_pipes_directory(char *pipes_directory) {
+char* get_default_pipes_directory() {
 	 // get the username (smaller than 200 chars)
 	 char *username = malloc(200 * sizeof(char));
      is_malloc_error(username);
@@ -29,13 +29,13 @@ void write_default_pipes_directory(char *pipes_directory) {
 
 	 char buf1[] = "/tmp/";
 	 char buf2[] = "/saturnd/pipes/";
-	 pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2))
+	 char *pipes_dir = malloc((strlen(username) + strlen(buf1) + strlen(buf2))
 							  *sizeof(char));
-     is_malloc_error(pipes_directory);
-	 strcpy(pipes_directory, buf1);
-	 strcat(pipes_directory, username);
-	 strcat(pipes_directory, buf2);
-
+     is_malloc_error(pipes_dir);
+	 strcpy(pipes_dir, buf1);
+	 strcat(pipes_dir, username);
+	 strcat(pipes_dir, buf2);
+    return pipes_dir;
 }
 
 /* Writes the fully formed pipe names to the request_pipe and reply_pipe pointers.
@@ -80,45 +80,6 @@ char *get_request_pipe_name(char *pipes_directory) {
     return request_pipe;
 }
 
-//void find_pipes_names(char *pipes_directory, char *request_pipe, char *reply_pipe) {
-//    if (pipes_directory == NULL) {
-//        write_default_pipes_directory(pipes_directory);
-//    }
-//
-//    char r[] = "saturnd-request-pipe";
-//    char a[] = "saturnd-reply-pipe";
-//    char slash[] = "/";
-//    // copy the dir name
-//    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
-//        // request pipe
-//        request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char) + 1);
-//        is_malloc_error(request_pipe);
-//        strcpy(request_pipe, pipes_directory);
-//
-//        // reply pipe
-//        reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char) + 1);
-//        is_malloc_error(reply_pipe);
-//        strcpy(reply_pipe, pipes_directory);
-//    } else { // need to add a "/" between dir name and basename
-//        // request pipe
-//        request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char) + 2);
-//        is_malloc_error(request_pipe);
-//        strcpy(request_pipe, pipes_directory);
-//        strcat(request_pipe, slash);
-//        // reply pipe
-//        reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char) + 2);
-//        is_malloc_error(reply_pipe);
-//        strcpy(reply_pipe, pipes_directory);
-//        strcat(reply_pipe, slash);
-//    }
-//
-//    // copy the basename
-//    strcat(request_pipe, r);
-//    strcat(reply_pipe, a);
-//
-//    fprintf(stdout, "request : %s\n", request_pipe);
-//    fprintf(stdout, "reply : %s\n", reply_pipe);
-//}
 
 /* Creates a pipe with READ and WRITE instructions
 - pipe_name : the pathname to the pipe
@@ -133,7 +94,7 @@ void create_pipe(char *pipe_name){
 
 /* Opens the reply pipe for reading. Program terminates on error. */
 int openRD_reply_pipe(char *reply_name){
-    int ret = open(reply_name, O_RDONLY);
+    int ret = open(reply_name, O_RDONLY | O_NONBLOCK); // open in read-only, non-blocking
     is_open_error(ret);
     return ret;
 }
@@ -142,10 +103,10 @@ int openRD_reply_pipe(char *reply_name){
 If the pipe can't be opened, the program tries to create it and then open it.
 Program terminates if the last opening fails. */
 int openWR_or_create_reply_pipe(char *reply_name){
-    int ret = open(reply_name, O_WRONLY);
+    int ret = open(reply_name, O_WRONLY | O_NONBLOCK);
     if (ret == -1) {
        create_pipe(reply_name);
-       ret = open(reply_name, O_WRONLY);
+       ret = open(reply_name, O_WRONLY | O_NONBLOCK);
        is_open_error(ret);
     }
     return ret;
@@ -167,7 +128,7 @@ int openRD_or_create_requests_pipe(char *request_name){
 
 /* Opens the request pipe for writing. Program terminates on error. */
 int openWR_requests_pipe(char *request_name){
-    int ret = open(request_name, O_WRONLY);
+    int ret = open(request_name, O_RDWR);
     is_open_error(ret);
     return ret;
 }
@@ -184,8 +145,10 @@ Arguments :
 */
 void open_pipes_cassini(int* fd, char *pipes_directory) {
     if (pipes_directory == NULL) {
-        write_default_pipes_directory(pipes_directory);
+        pipes_directory = get_default_pipes_directory();
     }
+
+
     // get the path names of the pipes
     char *request_pipe_name = get_request_pipe_name(pipes_directory);
     char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
@@ -208,7 +171,7 @@ Arguments :
 */
 void open_or_create_pipes_saturnd(int *fd, char *pipes_directory) {
     if (pipes_directory == NULL) {
-        write_default_pipes_directory(pipes_directory);
+        pipes_directory = get_default_pipes_directory();
     }
     // get the path names of the pipes
     char *request_pipe_name = get_request_pipe_name(pipes_directory);
