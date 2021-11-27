@@ -148,7 +148,6 @@ void open_pipes_cassini(int* fd, char *pipes_directory) {
         pipes_directory = get_default_pipes_directory();
     }
 
-
     // get the path names of the pipes
     char *request_pipe_name = get_request_pipe_name(pipes_directory);
     char *reply_pipe_name = get_reply_pipe_name(pipes_directory);

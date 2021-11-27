@@ -90,6 +90,7 @@ int main(int argc, char * argv[]) {
   uint64_t taskid;
   commandline *command;
   int pipes_fd[2];
+
   struct timing *t;
 
   int opt;
@@ -165,7 +166,6 @@ int main(int argc, char * argv[]) {
     read_answer(pipes_fd[0], operation);
 
   return EXIT_SUCCESS;
-
 
   error:
     if (errno != 0) perror("main");
