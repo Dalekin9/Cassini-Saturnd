@@ -15,5 +15,7 @@
 #include "server-reply.h"
 #include "timing-text-io.h"
 #include "pipes.h"
+#include "write-request.h"
+#include "read-reply.h"
 
 #endif // CASSINI
