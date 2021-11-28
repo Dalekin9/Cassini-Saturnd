@@ -10,5 +10,6 @@
 
 #include "client-request.h"
 #include "server-reply.h"
+#include "timing-text-io.h"
 
 #endif // CASSINI

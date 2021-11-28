@@ -19,6 +19,65 @@ const char usage_info[] = "\
      -p PIPES_DIR -> look for the pipes in PIPES_DIR (default: /tmp/<USERNAME>/saturnd/pipes)\n\
 ";
 
+
+/*
+Parses a char* into a string* :
+- changes the char* into a BYTE and put the data into it
+  (without the trailing \0)
+- and computes the length of the string (still without the \0) into a uint32
+ */
+string* argToString (char* c) {
+  string *str = malloc(sizeof(string));
+
+  // length without the \0
+  str->length = strlen(c);
+
+  // copy the string into the array WITHOUT the trailing \0
+  str->s = malloc(str->length);
+  memcpy(c, str->s, str->length);
+
+  return str;
+}
+
+
+/*
+Parses the arguments given that were passed to cassini.
+The arguments are transformed from char* to string*.
+Returns a commandline struct that contains all the args, with the name of the
+command as the first element of the array of string*.
+
+Exits the program with return code 1 if there isn't at least one argument
+to parse (or if malloc fails).
+ */
+commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
+  if (optind < argc) {
+  // malloc the struct and the array
+    commandline *c = malloc(sizeof(commandline));
+  if (c == NULL) goto malloc_error;
+  c->argv = malloc(argc * sizeof(string));
+  if (argv == NULL) goto malloc_error;
+
+  // find the number of arguments
+  c->argc = argc - optind;
+
+  // put the arguments into strings and into the array
+  for(int i = 0; i < argc-optind; i++) {
+    c->argv[i] = argToString(argv[optind+i]);
+  }
+
+  return c;
+
+  } else { // the user didn't give a command to execute
+    fprintf(stderr, "Missing a command name.\n %s", usage_info);
+    exit(1);
+  }
+
+ malloc_error:
+  fprintf(stderr, "Malloc failure\n");
+  exit(1);
+}
+
+
 int main(int argc, char * argv[]) {
   errno = 0;
   
@@ -29,7 +88,12 @@ int main(int argc, char * argv[]) {
   
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
-  
+  commandline *command;
+  int pipes_fd[2];
+
+  struct timing *t;
+
+
   int opt;
   char * strtoull_endp;
   while ((opt = getopt(argc, argv, "hlcqm:H:d:p:r:x:o:e:")) != -1) {
@@ -79,15 +143,21 @@ int main(int argc, char * argv[]) {
     case 'h':
       printf("%s", usage_info);
       return 0;
-    case '?':
-      fprintf(stderr, "%s", usage_info);
-      goto error;
+//    case '?':
+//      fprintf(stderr, "%s", usage_info);
+//      goto error;
     }
   }
 
-  // --------
-  // | TODO |
-  // --------
+  // if creating a task, fill the struct with the data
+  // and get all the command arguments
+  if (operation == CLIENT_REQUEST_CREATE_TASK) {
+    int ret = timing_from_strings(t, minutes_str, hours_str, daysofweek_str);
+    if (ret == -1) goto error;
+    command = get_commandline_arguments(argc, argv, optind);
+  }
+
+
   
   return EXIT_SUCCESS;
 
