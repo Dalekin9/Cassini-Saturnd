@@ -34,7 +34,7 @@ string* argToString (char* c) {
 
   // copy the string into the array WITHOUT the trailing \0
   str->s = malloc(str->length);
-  memcpy(c, str->s, str->length);
+  memcpy(str->s, c, str->length);
 
   return str;
 }
@@ -87,6 +87,7 @@ int main(int argc, char * argv[]) {
   uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
   uint64_t taskid;
   commandline *command;
+  struct timing *t;
   int pipes_fd[2];
 
   int opt;
@@ -147,7 +148,7 @@ int main(int argc, char * argv[]) {
   // if creating a task, fill the struct with the data
   // and get all the command arguments
   if (operation == CLIENT_REQUEST_CREATE_TASK) {
-    struct timing *t = malloc(sizeof(struct timing));
+    t = malloc(sizeof(struct timing));
     if (t == NULL) goto error;
 
     int ret = timing_from_strings(t, minutes_str, hours_str, daysofweek_str);
@@ -155,25 +156,23 @@ int main(int argc, char * argv[]) {
     command = get_commandline_arguments(argc, argv, optind);
   }
 
-  // test1
-  if (operation == CLIENT_REQUEST_LIST_TASKS) {
     // write the request
     pipes_fd[1] = open_request_pipe();
-    write_request_l(pipes_fd[1], operation);
+    write_request(pipes_fd[1], operation, command, t);
     close_pipe(pipes_fd[1]);
 
     // read the reply
     pipes_fd[0] = open_reply_pipe();
-    read_reply_l(pipes_fd[0]);
+    read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
-  }
-  
+
+
   return EXIT_SUCCESS;
 
- error:
-  if (errno != 0) perror("main");
-  free(pipes_directory);
-  pipes_directory = NULL;
-  return EXIT_FAILURE;
+    error:
+    if (errno != 0) perror("main");
+    free(pipes_directory);
+    pipes_directory = NULL;
+    return EXIT_FAILURE;
 }
 

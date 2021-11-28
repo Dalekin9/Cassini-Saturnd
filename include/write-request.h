@@ -1,1 +1,1 @@
-void write_request_l(int, uint16_t);
+void write_request(int, uint16_t, commandline*, struct timing*);

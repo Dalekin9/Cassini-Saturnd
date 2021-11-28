@@ -81,16 +81,6 @@ task **parse_tasks(int fd, uint32_t nbTasks) {
 }
 
 void read_reply_l(int fd) {
-    // read the repcode
-    uint16_t repcode;
-    read(fd, &repcode, sizeof(uint16_t));
-
-    repcode = be16toh(repcode);
-    if (repcode != SERVER_REPLY_OK) {
-        perror("Wrong error code ");
-        exit(EXIT_FAILURE);
-    }
-
     // read the number of tasks
     uint32_t nbTasks;
     read(fd, &nbTasks, sizeof(uint32_t));
@@ -102,4 +92,24 @@ void read_reply_l(int fd) {
         print_reply_l(nbTasks, tasks);
     }  // If there are no tasks, there is nothing to print
 
+}
+
+
+void read_reply(int fd, uint16_t operation) {
+    // read the repcode
+    uint16_t repcode;
+    read(fd, &repcode, sizeof(uint16_t));
+    repcode = be16toh(repcode);
+
+    uint32_t taskid;
+    switch (operation) {
+        case CLIENT_REQUEST_LIST_TASKS:
+            read_reply_l(fd);
+            break;
+        case CLIENT_REQUEST_CREATE_TASK:
+            read(fd, &taskid, sizeof(uint32_t));
+            taskid = be32toh(taskid);
+            print_reply_c(taskid);
+            break;
+    }
 }

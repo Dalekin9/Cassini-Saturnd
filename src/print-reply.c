@@ -18,3 +18,7 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
         fprintf(stdout, "\n");
     }
 }
+
+void print_reply_c(uint32_t taskid) {
+    fprintf(stdout, "%lu\n", taskid);
+}

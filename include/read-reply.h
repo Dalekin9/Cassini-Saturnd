@@ -1,1 +1,1 @@
-void read_reply_l(int);
+void read_reply(int, uint16_t);
