@@ -7,9 +7,13 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdint.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 #include "client-request.h"
 #include "server-reply.h"
 #include "timing-text-io.h"
+#include "pipes.h"
 
 #endif // CASSINI

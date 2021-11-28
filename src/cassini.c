@@ -93,7 +93,6 @@ int main(int argc, char * argv[]) {
 
   struct timing *t;
 
-
   int opt;
   char * strtoull_endp;
   while ((opt = getopt(argc, argv, "hlcqm:H:d:p:r:x:o:e:")) != -1) {
@@ -157,7 +156,42 @@ int main(int argc, char * argv[]) {
     command = get_commandline_arguments(argc, argv, optind);
   }
 
+  // test1
+  if (operation == CLIENT_REQUEST_LIST_TASKS) {
+    // open the request pipe
+    pipes_fd[1] = open_request_pipe();
 
+    // format and write the request
+    operation = htobe16(operation);
+    write(pipes_fd[1], &operation, sizeof(operation));
+
+    close_pipe(pipes_fd[1]);
+
+    // open the reply pipe
+    pipes_fd[0] = open_reply_pipe();
+
+    // read the repcode
+    uint16_t repcode;
+    read(pipes_fd[0], &repcode, sizeof(uint16_t));
+
+    repcode = be16toh(repcode);
+    if (repcode != SERVER_REPLY_OK) {
+        perror("Wrong error code ");
+        exit(EXIT_FAILURE);
+    }
+
+    // read the number of tasks
+    uint32_t nbTasks;
+    read(pipes_fd[0], &nbTasks, sizeof(uint32_t));
+
+    nbTasks = be32toh(nbTasks);
+    if (nbTasks != 0) {
+        perror("Should be 0");
+        exit(EXIT_FAILURE);
+    }
+    close_pipe(pipes_fd[0]);
+
+  }
   
   return EXIT_SUCCESS;
 
