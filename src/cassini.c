@@ -50,31 +50,29 @@ Exits the program with return code 1 if there isn't at least one argument
 to parse (or if malloc fails).
  */
 commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
-  if (optind < argc) {
-  // malloc the struct and the array
-    commandline *c = malloc(sizeof(commandline));
-  if (c == NULL) goto malloc_error;
-  c->argv = malloc(argc * sizeof(string));
-  if (argv == NULL) goto malloc_error;
+    if (optind < argc) {
+        // malloc the struct and the array
+        commandline *c = malloc(sizeof(commandline));
+        if (c == NULL) goto malloc_error;
+        c->argv = malloc(argc * sizeof(string));
+        if (argv == NULL) goto malloc_error;
 
-  // find the number of arguments
-  c->argc = argc - optind;
+        // find the number of arguments
+        c->argc = argc - optind;
 
-  // put the arguments into strings and into the array
-  for(int i = 0; i < argc-optind; i++) {
-    c->argv[i] = argToString(argv[optind+i]);
-  }
+        // put the arguments into strings and into the array
+        for(int i = 0; i < argc-optind; i++) {
+            c->argv[i] = argToString(argv[optind+i]);
+        }
+    return c;
+    } else { // the user didn't give a command to execute
+        fprintf(stderr, "Missing a command name.\n %s", usage_info);
+        exit(1);
+    }
 
-  return c;
-
-  } else { // the user didn't give a command to execute
-    fprintf(stderr, "Missing a command name.\n %s", usage_info);
+    malloc_error:
+    fprintf(stderr, "Malloc failure\n");
     exit(1);
-  }
-
- malloc_error:
-  fprintf(stderr, "Malloc failure\n");
-  exit(1);
 }
 
 
@@ -90,8 +88,6 @@ int main(int argc, char * argv[]) {
   uint64_t taskid;
   commandline *command;
   int pipes_fd[2];
-
-  struct timing *t;
 
   int opt;
   char * strtoull_endp;
@@ -151,6 +147,9 @@ int main(int argc, char * argv[]) {
   // if creating a task, fill the struct with the data
   // and get all the command arguments
   if (operation == CLIENT_REQUEST_CREATE_TASK) {
+    struct timing *t = malloc(sizeof(struct timing));
+    if (t == NULL) goto error;
+
     int ret = timing_from_strings(t, minutes_str, hours_str, daysofweek_str);
     if (ret == -1) goto error;
     command = get_commandline_arguments(argc, argv, optind);
