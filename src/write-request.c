@@ -46,7 +46,7 @@ void write_request_c(int fd, uint16_t operation, commandline *command, struct ti
     write(fd, buf, length);
 }
 
-void write_request_r(int fd, uint16_t operation, uint64_t taskid) {
+void write_request_taskid(int fd, uint16_t operation, uint64_t taskid) {
     size_t length = sizeof(uint16_t) + sizeof(uint64_t);
     // copy the info into the BYTE buffer
     BYTE buf[length];
@@ -58,24 +58,30 @@ void write_request_r(int fd, uint16_t operation, uint64_t taskid) {
     write(fd, buf, length);
 }
 
-void write_request_l(int fd, uint16_t operation) {
+void write_request_operation_code(int fd, uint16_t operation) {
     operation = htobe16(operation);
     write(fd, &operation, sizeof(operation));
 }
 
 void write_request(int fd, uint16_t operation, commandline *command, struct timing *t, uint64_t taskid) {
     switch (operation) {
-        case CLIENT_REQUEST_LIST_TASKS:
-            write_request_l(fd, operation);
-            break;
         case CLIENT_REQUEST_CREATE_TASK:
             write_request_c(fd, operation, command, t);
             free(t);
             free(command->argv);
             free(command);
             break;
+        // below are the requests with only the operation code
+        case CLIENT_REQUEST_LIST_TASKS:
+        case CLIENT_REQUEST_TERMINATE:
+            write_request_operation_code(fd, operation);
+            break;
+        // below are all the requests with only the operation code and the taskid
         case CLIENT_REQUEST_REMOVE_TASK:
-            write_request_r(fd, operation, taskid);
+        case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:
+        case CLIENT_REQUEST_GET_STDOUT:
+        case CLIENT_REQUEST_GET_STDERR:
+            write_request_taskid(fd, operation, taskid);
             break;
     }
 }
