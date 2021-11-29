@@ -111,6 +111,26 @@ void read_reply_l(int fd) {
 
 }
 
+void read_reply_c(int fd) {
+    uint64_t taskid;
+    read(fd, &taskid, sizeof(uint64_t));
+    taskid = be64toh(taskid);
+    print_reply_c(taskid);
+}
+
+void read_reply_r(int fd, uint16_t repcode) {
+    if (repcode == SERVER_REPLY_ERROR) {
+        // get the error code
+        uint16_t errcode;
+        read(fd, &errcode, sizeof(uint16_t));
+        errcode = htobe16(errcode);
+
+        if (errcode == SERVER_REPLY_ERROR_NOT_FOUND) {
+            print_error_not_found();
+        }
+    } // if OK, nothing to print
+}
+
 
 void read_reply(int fd, uint16_t operation) {
     // read the repcode
@@ -118,16 +138,15 @@ void read_reply(int fd, uint16_t operation) {
     read(fd, &repcode, sizeof(uint16_t));
     repcode = htobe16(repcode);
 
-
-    uint64_t taskid;
     switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS:
             read_reply_l(fd); // print statement is inside the read_reply_l function
             break;
         case CLIENT_REQUEST_CREATE_TASK:
-            read(fd, &taskid, sizeof(uint64_t));
-            taskid = be64toh(taskid);
-            print_reply_c(taskid);
+            read_reply_c(fd);
+            break;
+        case CLIENT_REQUEST_REMOVE_TASK:
+            read_reply_r(fd, repcode);
             break;
     }
 }

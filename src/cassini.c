@@ -162,7 +162,7 @@ int main(int argc, char * argv[]) {
 
     // write the request
     pipes_fd[1] = open_request_pipe();
-    write_request(pipes_fd[1], operation, command, t);
+    write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
 
     // read the reply
