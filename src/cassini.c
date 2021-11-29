@@ -34,6 +34,10 @@ string* argToString (char* c) {
 
   // copy the string into the array WITHOUT the trailing \0
   str->s = malloc(str->length);
+  if (str->s == NULL) {
+    perror("Malloc failure");
+    exit(EXIT_FAILURE);
+  }
   memcpy(str->s, c, str->length);
 
   return str;
@@ -160,6 +164,7 @@ int main(int argc, char * argv[]) {
     pipes_fd[1] = open_request_pipe();
     write_request(pipes_fd[1], operation, command, t);
     close_pipe(pipes_fd[1]);
+
 
     // read the reply
     pipes_fd[0] = open_reply_pipe();
