@@ -22,12 +22,12 @@ struct timing *read_timing(int fd) {
     struct timing *t = malloc(sizeof(struct timing));
     is_malloc_error(t);
 
-    is_read_error(read(fd, &minutes, sizeof(uint32_t)));
-    is_read_error(read(fd, &hours, sizeof(uint16_t)));
+    is_read_error(read(fd, &minutes, sizeof(uint64_t)));
+    is_read_error(read(fd, &hours, sizeof(uint32_t)));
     is_read_error(read(fd, &daysofweek, sizeof(uint8_t)));
 
-    t->minutes = be32toh(minutes);
-    t->hours = be16toh(hours);
+    t->minutes = be64toh(minutes);
+    t->hours = be32toh(hours);
     t->daysofweek = daysofweek; // no need to invert bytes, there is only 1
 
     return t;
@@ -64,7 +64,7 @@ task *parse_one_task(int fd) {
 
     // read the id of the task
     uint64_t taskid;
-    is_read_error(read(fd, &taskid, sizeof(uint32_t)));
+    is_read_error(read(fd, &taskid, sizeof(uint64_t)));
     t->taskid = be64toh(taskid);
 
     // read the timing of the task
@@ -99,14 +99,13 @@ task **parse_tasks(int fd, uint16_t nbTasks) {
 
 void read_reply_l(int fd) {
     // read the number of tasks
-    uint16_t nbTasks;
-    read(fd, &nbTasks, sizeof(uint16_t));
-    nbTasks = be16toh(nbTasks);
+    uint32_t nbTasks;
+    read(fd, &nbTasks, sizeof(uint32_t));
+    nbTasks = be32toh(nbTasks);
 
     // parse the list of tasks and print them
     if (nbTasks != 0) {
         task **tasks = parse_tasks(fd, nbTasks);
-        perror("reading ok");
         print_reply_l(nbTasks, tasks);
     }  // If there are no tasks, there is nothing to print
 
@@ -119,14 +118,15 @@ void read_reply(int fd, uint16_t operation) {
     read(fd, &repcode, sizeof(uint16_t));
     repcode = htobe16(repcode);
 
-    uint32_t taskid;
+
+    uint64_t taskid;
     switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS:
-            read_reply_l(fd);
+            read_reply_l(fd); // print statement is inside the read_reply_l function
             break;
         case CLIENT_REQUEST_CREATE_TASK:
-            read(fd, &taskid, sizeof(uint32_t));
-            taskid = be32toh(taskid);
+            read(fd, &taskid, sizeof(uint64_t));
+            taskid = be64toh(taskid);
             print_reply_c(taskid);
             break;
     }

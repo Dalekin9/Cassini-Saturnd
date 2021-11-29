@@ -165,12 +165,10 @@ int main(int argc, char * argv[]) {
     write_request(pipes_fd[1], operation, command, t);
     close_pipe(pipes_fd[1]);
 
-
     // read the reply
     pipes_fd[0] = open_reply_pipe();
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
-
 
   return EXIT_SUCCESS;
 

@@ -60,6 +60,9 @@ void write_request(int fd, uint16_t operation, commandline *command, struct timi
             break;
         case CLIENT_REQUEST_CREATE_TASK:
             write_request_c(fd, operation, command, t);
+            free(t);
+            free(command->argv);
+            free(command);
             break;
     }
 }
