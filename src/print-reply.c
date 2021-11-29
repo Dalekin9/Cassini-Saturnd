@@ -1,5 +1,12 @@
 #include "cassini.h"
 #include "timing.h"
+#include "timing-text-io.h"
+#include <bits/types.h>
+#include <endian.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <time.h>
 
 /*
 This file contains all the methods to format and write the
@@ -10,12 +17,34 @@ Most of its arguments will be NULL, and it decides with a
 switch which sub-methods need to be called.
 */
 
+/* print the timing */
+void print_timing(struct timing *t){
+    char *dest;
+    int ret = timing_string_from_timing(dest, t);
+    if (ret > 0) {
+        fprintf(stdout, "%s ", dest);
+    } else {
+        fprintf(stderr, "Print_Timing failure\n");
+        exit(1);
+    }
+}
+
+/* print the time for -x option */
+void print_time(int64_t sec){
+    time_t t_base;
+    struct tm *time_info;
+    t_base = time(NULL);
+    t_base += sec;
+    time_info = localtime(&t_base);
+    fprintf(stdout, "%04d-%02d-%02d %02d:%02d:%02d ", 
+    time_info->tm_year,time_info->tm_mon, time_info->tm_mday, time_info->tm_hour,time_info->tm_min,time_info->tm_sec);
+}
 
 /* Prints the response to the -l option */
 void print_l (uint16_t reptype, uint32_t nb_task, task *t[]){
     for (int i = 0; i <  nb_task; i++){
-        fprintf(stdout, "%d: %lu %d %d " , t[i]->taskid, t[i]->t->minutes,
-                t[i]->t->daysofweek, t[i]->t->daysofweek);
+        fprintf(stdout, "%d: " , t[i]->taskid);
+        print_timing(t[i]->t);
         for (int j =0 ; j < t[i]->command.argc; j ++){
             fprintf(stdout, "%s ", t[i]->command.argv[j]->s);
         }
@@ -26,6 +55,7 @@ void print_l (uint16_t reptype, uint32_t nb_task, task *t[]){
 /* Prints the reponse to the -x option, if the daemon answered OK */
 void print_x_ok (uint16_t reptype, uint32_t nb_runs, run *t[]){
     for (int i = 0; i< nb_runs; i++){
+        print_time(t[i]->time);
         fprintf(stdout, "%ld %d\n", t[i]->time, t[i]->exitcode);
     }
 }
