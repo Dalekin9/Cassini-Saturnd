@@ -160,17 +160,24 @@ int main(int argc, char * argv[]) {
     command = get_commandline_arguments(argc, argv, optind);
   }
 
+    // find out the complete filenames of the pipes
+    char **names = find_pipes_names(pipes_directory);
+
     // write the request
-    pipes_fd[1] = open_request_pipe();
+    pipes_fd[1] = open_request_pipe(names[0]);
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
 
     // read the reply
-    pipes_fd[0] = open_reply_pipe();
+    pipes_fd[0] = open_reply_pipe(names[1]);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
 
-  return EXIT_SUCCESS;
+    free(names[0]);
+    free(names[1]);
+    free(names);
+
+    return EXIT_SUCCESS;
 
     error:
     if (errno != 0) perror("main");
