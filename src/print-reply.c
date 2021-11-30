@@ -41,13 +41,10 @@ void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
         int h = t->tm_hour;
         int m = t->tm_min;
         int s = t->tm_sec;
-        free(t);
-
         fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d %lu\n", year, month, day, h, m, s, runs[i]->exitcode);
     }
 }
 
 void print_output(string *output) {
     fprintf(stdout, "%s\n", output->s);
-    free(output);
 }
