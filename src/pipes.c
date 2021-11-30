@@ -1,6 +1,6 @@
 #include "pipes.h"
 
-// TODO : rewrite the pipes opening with the right persissions.
+// TODO : rewrite the pipes opening with the right permissions.
 // Right now, all are O_RDWR so that it doesn't hang in tests
 
 int open_request_pipe() {

@@ -1,4 +1,9 @@
-#include <time.h>
+#include <stdio.h>          // stdout, fprintf()
+#include <stdlib.h>         // free()
+#include <time.h>           // localtime()
+#include <stdint.h>         // uint types
+#include "server-reply.h"
+#include "timing-text-io.h"
 
 void print_reply_l(uint32_t, task**);
 
