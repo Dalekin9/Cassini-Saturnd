@@ -118,7 +118,7 @@ void read_reply_c(int fd) {
     print_reply_c(taskid);
 }
 
-void read_reply_r(int fd, uint16_t repcode) {
+void read_reply_errcode_not_found(int fd, uint16_t repcode) {
     if (repcode == SERVER_REPLY_ERROR) {
         // get the error code
         uint16_t errcode;
@@ -128,7 +128,38 @@ void read_reply_r(int fd, uint16_t repcode) {
         if (errcode == SERVER_REPLY_ERROR_NOT_FOUND) {
             print_error_not_found();
         }
-    } // if OK, nothing to print
+    }
+}
+
+void read_reply_x(int fd, uint16_t repcode) {
+    uint32_t nbRuns;
+    read(fd, &nbRuns, sizeof(uint32_t));
+    nbRuns = htobe32(nbRuns);
+
+    // if this is an error, read the errcode and print the error
+    read_reply_errcode_not_found(fd, repcode);
+
+    // else
+    run **runs = malloc(sizeof(nbRuns * sizeof(run)));
+    is_malloc_error(runs);
+
+    int64_t time;
+    uint16_t exitcode;
+
+    for (uint32_t i = 0; i < nbRuns; i++) {
+        runs[i] = malloc(sizeof(run));
+        is_malloc_error(runs);
+
+        read(pipe_fd, &time, sizeof(time));
+        time = htobe64(time);
+        runs[i]->time = time;
+
+        read(pipe_fd, &exitcode, sizeof(exitcode));
+        exitcode = htobe16(exitcode);
+        runs[i]->exitcode = exitcode;
+    }
+
+    print_times_and_exit_codes(nbRuns, runs);
 }
 
 
@@ -146,7 +177,11 @@ void read_reply(int fd, uint16_t operation) {
             read_reply_c(fd);
             break;
         case CLIENT_REQUEST_REMOVE_TASK:
-            read_reply_r(fd, repcode);
+            read_reply_errcode_not_found(fd, repcode);
             break;
+        case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:
+            read_reply_x(fd, repcode);
+            break;
+
     }
 }

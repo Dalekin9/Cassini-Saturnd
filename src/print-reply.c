@@ -27,3 +27,17 @@ void print_reply_c(uint32_t taskid) {
 void print_error_not_found() {
     fprintf(stderr, "No task with this ID.\n");
 }
+
+void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
+    for (uint32_t i = 0; i < nbRuns; i++) {
+        struct *tm = localtime(runs[i]->time);
+        int year = tm->tm_year + 1900;
+        int month = tm->tm_month;
+        int day = tm->tm_mday;
+        int h = tm->tm_hour;
+        int m = tm->tm_min;
+        int s = tm->tm_sec;
+
+        fprintf(stdout, "%d-%d-%d %d:%d:%d %lu\n", year, month, day, h, m, s, runs[i]->exitcode)
+    }
+}
