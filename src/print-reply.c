@@ -30,6 +30,7 @@ void print_error(uint16_t errcode) {
     } else if (errcode == SERVER_REPLY_ERROR_NEVER_RUN) {
         fprintf(stderr, "This task hasn't been run yet\n");
     }
+    exit(1);
 }
 
 void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
