@@ -24,20 +24,28 @@ void print_reply_c(uint32_t taskid) {
     fprintf(stdout, "%lu\n", taskid);
 }
 
-void print_error_not_found() {
-    fprintf(stderr, "No task with this ID.\n");
+void print_error(uint16_t errcode) {
+    if (errcode == SERVER_REPLY_ERROR_NOT_FOUND) {
+        fprintf(stderr, "No task with this ID.\n");
+    } else if (errcode == SERVER_REPLY_ERROR_NEVER_RUN) {
+        fprintf(stderr, "This task hasn't been run yet\n");
+    }
 }
 
 void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
     for (uint32_t i = 0; i < nbRuns; i++) {
-        struct *tm = localtime(runs[i]->time);
-        int year = tm->tm_year + 1900;
-        int month = tm->tm_month;
-        int day = tm->tm_mday;
-        int h = tm->tm_hour;
-        int m = tm->tm_min;
-        int s = tm->tm_sec;
+        struct tm *t = localtime(&runs[i]->time);
+        int year = t->tm_year + 1900;
+        int month = t->tm_mon;
+        int day = t->tm_mday;
+        int h = t->tm_hour;
+        int m = t->tm_min;
+        int s = t->tm_sec;
 
-        fprintf(stdout, "%d-%d-%d %d:%d:%d %lu\n", year, month, day, h, m, s, runs[i]->exitcode)
+        fprintf(stdout, "%d-%d-%d %d:%d:%d %lu\n", year, month, day, h, m, s, runs[i]->exitcode);
     }
+}
+
+void print_output(string *output) {
+    fprintf(stdout, "%s\n", output->s);
 }
