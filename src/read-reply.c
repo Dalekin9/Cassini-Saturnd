@@ -48,6 +48,8 @@ string *read_string(int fd) {
 
     // read the arg
     is_read_error(read(fd, str->s, str->length));
+
+    return str;
 }
 
 string **read_args(int fd, uint32_t argc) {
