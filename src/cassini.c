@@ -26,20 +26,20 @@ Parses a char* into a string* :
 - computes the length of the string (still without the \0) into a uint32_t
  */
 string* argToString (char* c) {
-  string *str = malloc(sizeof(string));
+    string *str = malloc(sizeof(string));
 
-  // length without the \0
-  str->length = strlen(c);
+    // length without the \0
+    str->length = strlen(c);
 
-  // copy the string into the array WITHOUT the trailing \0
-  str->s = malloc(str->length);
-  if (str->s == NULL) {
-    perror("Malloc failure");
-    exit(EXIT_FAILURE);
-  }
-  memcpy(str->s, c, str->length);
+    // copy the string into the array WITHOUT the trailing \0
+    str->s = malloc(str->length);
+    if (str->s == NULL) {
+      perror("Malloc failure");
+      exit(EXIT_FAILURE);
+    }
+    memcpy(str->s, c, str->length);
 
-  return str;
+    return str;
 }
 
 
@@ -80,81 +80,81 @@ commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
 
 
 int main(int argc, char * argv[]) {
-  errno = 0;
+    errno = 0;
   
-  char * minutes_str = "*";
-  char * hours_str = "*";
-  char * daysofweek_str = "*";
-  char * pipes_directory = NULL;
+    char * minutes_str = "*";
+    char * hours_str = "*";
+    char * daysofweek_str = "*";
+    char * pipes_directory = NULL;
   
-  uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
-  uint64_t taskid;
-  commandline *command;
-  struct timing *t;
-  int pipes_fd[2];
+    uint16_t operation = CLIENT_REQUEST_LIST_TASKS;
+    uint64_t taskid;
+    commandline *command;
+    struct timing *t;
+    int pipes_fd[2];
 
-  int opt;
-  char * strtoull_endp;
-  while ((opt = getopt(argc, argv, "hlcqm:H:d:p:r:x:o:e:")) != -1) {
-    switch (opt) {
-    case 'm':
-      minutes_str = optarg;
-      break;
-    case 'H':
-      hours_str = optarg;
-      break;
-    case 'd':
-      daysofweek_str = optarg;
-      break;
-    case 'p':
-      pipes_directory = strdup(optarg);
-      if (pipes_directory == NULL) goto error;
-      break;
-    case 'l':
-      operation = CLIENT_REQUEST_LIST_TASKS;
-      break;
-    case 'c':
-      operation = CLIENT_REQUEST_CREATE_TASK;
-      break;
-    case 'q':
-      operation = CLIENT_REQUEST_TERMINATE;
-      break;
-    case 'r':
-      operation = CLIENT_REQUEST_REMOVE_TASK;
-      taskid = strtoull(optarg, &strtoull_endp, 10);
-      if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
-      break;
-    case 'x':
-      operation = CLIENT_REQUEST_GET_TIMES_AND_EXITCODES;
-      taskid = strtoull(optarg, &strtoull_endp, 10);
-      if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
-      break;
-    case 'o':
-      operation = CLIENT_REQUEST_GET_STDOUT;
-      taskid = strtoull(optarg, &strtoull_endp, 10);
-      if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
-      break;
-    case 'e':
-      operation = CLIENT_REQUEST_GET_STDERR;
-      taskid = strtoull(optarg, &strtoull_endp, 10);
-      if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
-      break;
-    case 'h':
-      printf("%s", usage_info);
-      return 0;
+    int opt;
+    char * strtoull_endp;
+    while ((opt = getopt(argc, argv, "hlcqm:H:d:p:r:x:o:e:")) != -1) {
+      switch (opt) {
+      case 'm':
+        minutes_str = optarg;
+        break;
+      case 'H':
+        hours_str = optarg;
+        break;
+      case 'd':
+        daysofweek_str = optarg;
+        break;
+      case 'p':
+        pipes_directory = strdup(optarg);
+        if (pipes_directory == NULL) goto error;
+        break;
+      case 'l':
+        operation = CLIENT_REQUEST_LIST_TASKS;
+        break;
+      case 'c':
+        operation = CLIENT_REQUEST_CREATE_TASK;
+        break;
+      case 'q':
+        operation = CLIENT_REQUEST_TERMINATE;
+        break;
+      case 'r':
+        operation = CLIENT_REQUEST_REMOVE_TASK;
+        taskid = strtoull(optarg, &strtoull_endp, 10);
+        if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
+        break;
+      case 'x':
+        operation = CLIENT_REQUEST_GET_TIMES_AND_EXITCODES;
+        taskid = strtoull(optarg, &strtoull_endp, 10);
+        if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
+        break;
+      case 'o':
+        operation = CLIENT_REQUEST_GET_STDOUT;
+        taskid = strtoull(optarg, &strtoull_endp, 10);
+        if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
+        break;
+      case 'e':
+        operation = CLIENT_REQUEST_GET_STDERR;
+        taskid = strtoull(optarg, &strtoull_endp, 10);
+        if (strtoull_endp == optarg || strtoull_endp[0] != '\0') goto error;
+        break;
+      case 'h':
+        printf("%s", usage_info);
+        return 0;
+      }
     }
-  }
 
-  // if creating a task, fill the struct with the data
-  // and get all the command arguments
-  if (operation == CLIENT_REQUEST_CREATE_TASK) {
-    t = malloc(sizeof(struct timing));
-    if (t == NULL) goto error;
+    // if creating a task, fill the struct with the data
+    // and get all the command arguments
+    if (operation == CLIENT_REQUEST_CREATE_TASK) {
+      t = malloc(sizeof(struct timing));
+      if (t == NULL) goto error;
 
-    int ret = timing_from_strings(t, minutes_str, hours_str, daysofweek_str);
-    if (ret == -1) goto error;
-    command = get_commandline_arguments(argc, argv, optind);
-  }
+      int ret = timing_from_strings(t, minutes_str, hours_str, daysofweek_str);
+      if (ret == -1) goto error;
+      command = get_commandline_arguments(argc, argv, optind);
+    }
 
     // find out the complete filenames of the pipes
     if (pipes_directory == NULL) {
