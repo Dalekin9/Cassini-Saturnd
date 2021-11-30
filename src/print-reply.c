@@ -36,13 +36,13 @@ void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
     for (uint32_t i = 0; i < nbRuns; i++) {
         struct tm *t = localtime(&runs[i]->time);
         int year = t->tm_year + 1900;
-        int month = t->tm_mon;
+        int month = t->tm_mon + 1; // 0 = january
         int day = t->tm_mday;
         int h = t->tm_hour;
         int m = t->tm_min;
         int s = t->tm_sec;
 
-        fprintf(stdout, "%d-%d-%d %d:%d:%d %lu\n", year, month, day, h, m, s, runs[i]->exitcode);
+        fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d %lu\n", year, month, day, h, m, s, runs[i]->exitcode);
     }
 }
 
