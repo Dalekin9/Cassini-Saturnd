@@ -57,31 +57,40 @@ char* write_default_pipes_directory() {
     return pipes_directory;
 }
 
-/* Returns the fully formed pipe names :
-- request_pipe = "/tmp/<USERNAME>/saturnd/pipes/saturnd-request-pipe"
-- answer_pipe = "/tmp/<USERNAME>/saturnd/pipes/saturnd-reply-pipe"
-*/
-char** find_pipes_names(char *pipes_directory) {
-    if (pipes_directory == NULL) {
-        write_default_pipes_directory(pipes_directory);
+char *get_reply_pipe_name(char *pipes_directory) {
+    char basename[] = "saturnd-reply-pipe";
+    char slash[] = "/";
+    char *reply_pipe;
+
+    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
+       reply_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
+       is_malloc_error2(reply_pipe);
+       strcpy(reply_pipe, pipes_directory);
+    } else { // need to add a "/" between dir name and basename
+       reply_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
+       is_malloc_error2(reply_pipe);
+       strcpy(reply_pipe, pipes_directory);
+       strcat(reply_pipe, slash);
     }
+    strcat(reply_pipe, basename);
+    return reply_pipe;
+}
 
-    char r[] = "saturnd-request-pipe";
-    char *request_pipe = malloc ((strlen(pipes_directory) + strlen(r)) * sizeof(char));
-    is_malloc_error2(request_pipe);
-    strcpy(request_pipe, pipes_directory);
-    strcat(request_pipe, r);
+char *get_request_pipe_name(char *pipes_directory) {
+    char basename[] = "saturnd-request-pipe";
+    char slash[] = "/";
+    char *request_pipe;
 
-    char a[] = "saturnd-reply-pipe";
-    char *reply_pipe = malloc ((strlen(pipes_directory) + strlen(a)) * sizeof(char));
-    is_malloc_error2(reply_pipe);
-    strcpy(reply_pipe, pipes_directory);
-    strcat(reply_pipe, a);
-
-    char **names = malloc((strlen(request_pipe) + strlen(reply_pipe)) * sizeof(char));
-    is_malloc_error2(names);
-    names[0] = request_pipe;
-    names[1] = reply_pipe;
-
-    return names;
+    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
+       request_pipe = malloc((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
+       is_malloc_error2(request_pipe);
+       strcpy(request_pipe, pipes_directory);
+    } else { // need to add a "/" between dir name and basename
+       request_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
+       is_malloc_error2(request_pipe);
+       strcpy(request_pipe, pipes_directory);
+       strcat(request_pipe, slash);
+    }
+    strcat(request_pipe, basename);
+    return request_pipe;
 }

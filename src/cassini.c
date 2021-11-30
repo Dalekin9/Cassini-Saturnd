@@ -161,21 +161,24 @@ int main(int argc, char * argv[]) {
   }
 
     // find out the complete filenames of the pipes
-    char **names = find_pipes_names(pipes_directory);
+    if (pipes_directory == NULL) {
+        write_default_pipes_directory(pipes_directory);
+    }
+    char *request_pipe_name = get_request_pipe_name(pipes_directory);
+    char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
 
     // write the request
-    pipes_fd[1] = open_request_pipe(names[0]);
+    pipes_fd[1] = open_request_pipe(request_pipe_name);
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
 
     // read the reply
-    pipes_fd[0] = open_reply_pipe(names[1]);
+    pipes_fd[0] = open_reply_pipe(reply_pipe_name);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
 
-    free(names[0]);
-    free(names[1]);
-    free(names);
+    free(request_pipe_name);
+    free(reply_pipe_name);
 
     return EXIT_SUCCESS;
 
