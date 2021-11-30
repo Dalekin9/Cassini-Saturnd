@@ -1,5 +1,6 @@
 #include "read-reply.h"
 
+/* Terminates the program if p is NULL. */
 void is_malloc_error(void *p) {
     if (p == NULL) {
         perror("Malloc error");
@@ -7,6 +8,8 @@ void is_malloc_error(void *p) {
     }
 }
 
+/* Terminates the program if there was a reading error.
+- ret : the return value of the `write` function call */
 void is_read_error(int ret) {
     if (ret == -1) {
         perror("Reading error");
@@ -14,6 +17,7 @@ void is_read_error(int ret) {
     }
 }
 
+/* Returns a timing read from fd. */
 struct timing *read_timing(int fd) {
     uint64_t minutes; uint32_t hours; uint8_t daysofweek;
 
@@ -31,6 +35,7 @@ struct timing *read_timing(int fd) {
     return t;
 }
 
+/* Returns a string* read from fd. */
 string *read_string(int fd) {
     string *str = malloc(sizeof(string));
     is_malloc_error(str);
@@ -50,6 +55,8 @@ string *read_string(int fd) {
     return str;
 }
 
+/* Reads argc arguments from fd and formats them into string*.
+Returns a string** that contains all the arguments. */
 string **read_args(int fd, uint32_t argc) {
     string **argv = malloc(argc * sizeof(string));
     is_malloc_error(argv);
@@ -61,6 +68,7 @@ string **read_args(int fd, uint32_t argc) {
     return argv;
 }
 
+/* Reads and returns one task read from fd. */
 task *parse_one_task(int fd) {
     // malloc the task
     task *t = malloc(sizeof(task));
@@ -90,6 +98,8 @@ task *parse_one_task(int fd) {
     return t;
 }
 
+/* Reads nbTasks tasks from fd.
+Returns the task** that contains all the info. */
 task **parse_tasks(int fd, uint16_t nbTasks) {
     task **tasks = malloc(nbTasks * sizeof(task));
     is_malloc_error(tasks);
@@ -100,6 +110,7 @@ task **parse_tasks(int fd, uint16_t nbTasks) {
     return tasks;
 }
 
+/* Reads the reply to the LIST_TASK request. */
 void read_reply_l(int fd) {
     // read the number of tasks
     uint32_t nbTasks;
@@ -114,6 +125,7 @@ void read_reply_l(int fd) {
 
 }
 
+/* Reads the reply to the CREATE_TASK request. */
 void read_reply_c(int fd) {
     uint64_t taskid;
     read(fd, &taskid, sizeof(uint64_t));
@@ -121,6 +133,7 @@ void read_reply_c(int fd) {
     print_reply_c(taskid);
 }
 
+/* Reads the error code. */
 void read_reply_error(int fd) {
     // get the error code
     uint16_t errcode;
@@ -130,6 +143,7 @@ void read_reply_error(int fd) {
     print_error(errcode);
 }
 
+/* Read the reply to the GET_TIMES_AND_EXIT_CODES request. */
 void read_reply_x(int fd, uint16_t repcode) {
     if (repcode == SERVER_REPLY_ERROR) {
         read_reply_error(fd);
@@ -161,6 +175,7 @@ void read_reply_x(int fd, uint16_t repcode) {
     }
 }
 
+/* Reads the reply to the STDERR or STDOUT requests. */
 void read_reply_std(int fd, uint16_t repcode) {
     if (repcode == SERVER_REPLY_ERROR) {
         read_reply_error(fd); // printing call is inside read_reply_error
@@ -171,6 +186,14 @@ void read_reply_std(int fd, uint16_t repcode) {
 }
 
 
+/* Main method to read the reply of the daemon.
+- fd : the file descriptor of the reply pipe
+- operation : the operation code of the original request
+
+The reply gets parsed and then the reply is formatted and printed
+to stdout. The print statement is often inside one of the auxiliary
+functions.
+*/
 void read_reply(int fd, uint16_t operation) {
     // read the repcode
     uint16_t repcode;
@@ -179,7 +202,7 @@ void read_reply(int fd, uint16_t operation) {
 
     switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS:
-            read_reply_l(fd); // print statement is inside the read_reply_l function
+            read_reply_l(fd);
             break;
         case CLIENT_REQUEST_CREATE_TASK:
             read_reply_c(fd);

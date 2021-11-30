@@ -1,5 +1,6 @@
 #include "pipes.h"
 
+/** Terminates the program if the pointer is NULL. */
 void is_malloc_error2(void *p) {
     if (p == NULL) {
         perror("Malloc failure");
@@ -7,9 +8,9 @@ void is_malloc_error2(void *p) {
     }
 }
 
-// TODO : rewrite the pipes opening with the right permissions.
-// Right now, all are O_RDWR so that it doesn't hang in tests
-
+/* Opens the request pipe.
+- name = the path to the pipe.
+Function fails if the pipe can't be opened. */
 int open_request_pipe(char *name) {
     int fd = open(name, O_RDWR);
     if (fd == -1) {
@@ -19,6 +20,9 @@ int open_request_pipe(char *name) {
     return fd;
 }
 
+/* Opens the reply pipe.
+- name = the path to the pipe.
+Function fails if the pipe can't be opened. */
 int open_reply_pipe(char *name) {
     int fd = open(name, O_RDWR);
     if (fd == -1) {
@@ -28,6 +32,7 @@ int open_reply_pipe(char *name) {
     return fd;
 }
 
+/* Closes the pipe. Function fails if it can't be closed. */
 void close_pipe(int fd) {
     int ret = close(fd);
     if (ret == -1){
@@ -57,6 +62,11 @@ char* write_default_pipes_directory() {
     return pipes_directory;
 }
 
+/* Returns the name for the reply pipe : pipe_directory/saturnd-reply-pipe
+Adds a '/' between the pipes_directory and the basename if necessary.
+
+Assumes pipes_directory is NOT null.
+*/
 char *get_reply_pipe_name(char *pipes_directory) {
     char basename[] = "saturnd-reply-pipe";
     char slash[] = "/";
@@ -76,6 +86,11 @@ char *get_reply_pipe_name(char *pipes_directory) {
     return reply_pipe;
 }
 
+/* Returns the name for the request pipe : pipe_directory/saturnd-request-pipe
+Adds a '/' between the pipes_directory and the basename if necessary.
+
+Assumes pipes_directory is NOT null.
+*/
 char *get_request_pipe_name(char *pipes_directory) {
     char basename[] = "saturnd-request-pipe";
     char slash[] = "/";

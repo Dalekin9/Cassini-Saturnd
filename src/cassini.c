@@ -22,9 +22,8 @@ const char usage_info[] = "\
 
 /*
 Parses a char* into a string* :
-- changes the char* into a BYTE and put the data into it
-  (without the trailing \0)
-- and computes the length of the string (still without the \0) into a uint32
+- copies the char* into a BYTE* and put the data into it (without the trailing \0)
+- computes the length of the string (still without the \0) into a uint32_t
  */
 string* argToString (char* c) {
   string *str = malloc(sizeof(string));
@@ -45,13 +44,13 @@ string* argToString (char* c) {
 
 
 /*
-Parses the arguments given that were passed to cassini.
-The arguments are transformed from char* to string*.
+Parses the arguments that were passed to cassini.
+The arguments are copied from char* into string*.
 Returns a commandline struct that contains all the args, with the name of the
 command as the first element of the array of string*.
 
 Exits the program with return code 1 if there isn't at least one argument
-to parse (or if malloc fails).
+to parse.
  */
 commandline* get_commandline_arguments (int argc, char *argv[], int optind) {
     if (optind < argc) {
@@ -143,9 +142,6 @@ int main(int argc, char * argv[]) {
     case 'h':
       printf("%s", usage_info);
       return 0;
-//    case '?':
-//      fprintf(stderr, "%s", usage_info);
-//      goto error;
     }
   }
 
@@ -179,7 +175,6 @@ int main(int argc, char * argv[]) {
 
     free(request_pipe_name);
     free(reply_pipe_name);
-
     return EXIT_SUCCESS;
 
     error:

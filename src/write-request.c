@@ -1,5 +1,6 @@
 #include "write-request.h"
 
+/* Writes a request for CREATE_TASK. */
 void write_request_c(int fd, uint16_t operation, commandline *command, struct timing *t) {
     // compute the total length of the request
     int length = sizeof(operation)
@@ -45,6 +46,8 @@ void write_request_c(int fd, uint16_t operation, commandline *command, struct ti
     write(fd, buf, length);
 }
 
+/* Writes a request that contains the operation code and the taskid.
+This is for REMOVE, GET_TIMES_AND_EXIT_CODES, STDOUT and STDERR requests. */
 void write_request_taskid(int fd, uint16_t operation, uint64_t taskid) {
     size_t length = sizeof(uint16_t) + sizeof(uint64_t);
     // copy the info into the BYTE buffer
@@ -57,11 +60,17 @@ void write_request_taskid(int fd, uint16_t operation, uint64_t taskid) {
     write(fd, buf, length);
 }
 
+/* Writes a request that only contains the operation code.
+This is for LIST_TASKS and TEERMINATE requests. */
 void write_request_operation_code(int fd, uint16_t operation) {
     operation = htobe16(operation);
     write(fd, &operation, sizeof(operation));
 }
 
+
+/* Main method to write the request.
+Takes all the possible arguments (see protocol.md) and writes a request to fd
+depending on the operation code. */
 void write_request(int fd, uint16_t operation, commandline *command, struct timing *t, uint64_t taskid) {
     switch (operation) {
         case CLIENT_REQUEST_CREATE_TASK:

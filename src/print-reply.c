@@ -1,5 +1,9 @@
 #include "print-reply.h"
 
+/* Prints the reply to the CREATE_LIST request.
+- nbTasks : the number of tasks to print
+- tasks : an array of struct task that contains all the info about the tasks
+*/
 void print_reply_l(uint32_t nbTasks, task **tasks) {
     for (uint32_t i = 0; i < nbTasks; i++) {
         // get the timing as a string
@@ -19,10 +23,14 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
     free(tasks);
 }
 
+/* Prints the reply to the request CREATE_TASK.
+- taskid : the id of the task that was created */
 void print_reply_c(uint32_t taskid) {
     fprintf(stdout, "%lu\n", taskid);
 }
 
+/* Prints the error message bases on the error code.
+- errcode : the error code sent by the daemon */
 void print_error(uint16_t errcode) {
     if (errcode == SERVER_REPLY_ERROR_NOT_FOUND) {
         fprintf(stderr, "No task with this ID.\n");
@@ -32,6 +40,11 @@ void print_error(uint16_t errcode) {
     exit(1);
 }
 
+/* Prints the answer to the GET_TIME_AND_EXIT_CODES request.
+- nbRuns : the number of times the task was run
+- runs : an array of struct run that contains the time and exit codes
+         of each run
+*/
 void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
     for (uint32_t i = 0; i < nbRuns; i++) {
         struct tm *t = localtime(&runs[i]->time);
@@ -45,6 +58,10 @@ void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
     }
 }
 
+/* Prints the answer to the GET_STDERR or GET_STDOUT requests :
+- output : the string that contains everything that was writtent to
+           stdout or stderr on the last run of the task
+*/
 void print_output(string *output) {
     fprintf(stdout, "%s\n", output->s);
 }
