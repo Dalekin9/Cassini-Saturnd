@@ -133,13 +133,13 @@ void read_reply_error(int fd) {
 }
 
 void read_reply_x(int fd, uint16_t repcode) {
-    uint32_t nbRuns;
-    read(fd, &nbRuns, sizeof(uint32_t));
-    nbRuns = htobe32(nbRuns);
-
     if (repcode == SERVER_REPLY_ERROR) {
         read_reply_error(fd);
     } else {
+        uint32_t nbRuns;
+        read(fd, &nbRuns, sizeof(uint32_t));
+        nbRuns = htobe32(nbRuns);
+
         run **runs = malloc(sizeof(nbRuns * sizeof(run)));
         is_malloc_error(runs);
 
