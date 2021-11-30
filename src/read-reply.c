@@ -187,7 +187,9 @@ void read_reply(int fd, uint16_t operation) {
             read_reply_c(fd);
             break;
         case CLIENT_REQUEST_REMOVE_TASK:
-            read_reply_error(fd);
+            if (repcode == SERVER_REPLY_ERROR) {
+                read_reply_error(fd);
+            } // otherwise, nothing to do (and nothing to print)
             break;
         case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES:
             read_reply_x(fd, repcode);
