@@ -9,9 +9,9 @@ void is_malloc_error(void *p) {
 }
 
 /* Terminates the program if there was a reading error.
-- ret : the return value of the `write` function call */
-void is_read_error(int ret) {
-    if (ret == -1) {
+- val : the return value of the `write` function call */
+void is_read_error(int val) {
+    if (val == -1) {
         perror("Reading error");
         exit(EXIT_FAILURE);
     }
