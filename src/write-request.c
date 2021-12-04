@@ -13,37 +13,37 @@ void write_request_c(int fd, uint16_t operation, commandline *command, struct ti
 
     // create the request
     int current = 0;
-    BYTE buf[length];
+    BYTE buff[length];
     operation = htobe16(operation);
-    memcpy(buf, &operation, sizeof(uint16_t));
+    memcpy(buff, &operation, sizeof(uint16_t));
     current += sizeof(uint16_t);
 
     // copy the timing
     t->minutes = htobe64(t->minutes);
-    memcpy(buf+current, &t->minutes, sizeof(uint64_t));
+    memcpy(buff+current, &t->minutes, sizeof(uint64_t));
     current += sizeof(uint64_t);
     t->hours = htobe32(t->hours);
-    memcpy(buf+current, &t->hours, sizeof(uint32_t));
+    memcpy(buff+current, &t->hours, sizeof(uint32_t));
     current += sizeof(uint32_t);
-    memcpy(buf+current, &t->daysofweek, sizeof(uint8_t)); // no need to convert endian for days : there is only 1 byte
+    memcpy(buff+current, &t->daysofweek, sizeof(uint8_t)); // no need to convert endian for days : there is only 1 byte
     current += sizeof(uint8_t);
 
     uint32_t argc_tmp = htobe32(command->argc);
-    memcpy(buf+current, &argc_tmp, sizeof(uint32_t));
+    memcpy(buff+current, &argc_tmp, sizeof(uint32_t));
     current += sizeof(uint32_t);
 
     // copy command->argv
     for (int i = 0; i < command->argc; i++) {
         string *str = command->argv[i];
         uint32_t length_tmp = htobe32(str->length);
-        memcpy(buf+current, &length_tmp, sizeof(uint32_t));
+        memcpy(buff+current, &length_tmp, sizeof(uint32_t));
         current += sizeof(uint32_t);
-        memcpy(buf+current, str->s, str->length);
+        memcpy(buff+current, str->s, str->length);
         current += str->length;
     }
 
     // write the request
-    write(fd, buf, length);
+    write(fd, buff, length);
 }
 
 /* Writes a request that contains the operation code and the taskid.
@@ -51,13 +51,13 @@ This is for REMOVE, GET_TIMES_AND_EXIT_CODES, STDOUT and STDERR requests. */
 void write_request_taskid(int fd, uint16_t operation, uint64_t taskid) {
     size_t length = sizeof(uint16_t) + sizeof(uint64_t);
     // copy the info into the BYTE buffer
-    BYTE buf[length];
+    BYTE buff[length];
     operation = htobe16(operation);
-    memcpy(buf, &operation, sizeof(uint16_t));
+    memcpy(buff, &operation, sizeof(uint16_t));
     taskid = htobe64(taskid);
-    memcpy(buf+sizeof(uint16_t), &taskid, sizeof(uint64_t));
+    memcpy(buff+sizeof(uint16_t), &taskid, sizeof(uint64_t));
     // write the request to the pipe
-    write(fd, buf, length);
+    write(fd, buff, length);
 }
 
 /* Writes a request that only contains the operation code.
