@@ -2,6 +2,8 @@
 
 #enable -f sleep sleep
 
+rm -f valgrind.log
+
 CASSINI=./cassini
 PIPESDIR=./run/pipes
 TESTSDIR=./tests
@@ -64,7 +66,7 @@ run_test() {
   PID1=$!
   timeout $TIMEOUT cat "$PIPESDIR/$REQUEST_PIPE" > "$TMP1" &
   PID2=$!
-  timeout $TIMEOUT $CASSINI -p "$PIPESDIR" "${ARGS[@]}" > "$TMP2" 2>/dev/null
+  timeout $TIMEOUT valgrind $CASSINI -p "$PIPESDIR" "${ARGS[@]}" > "$TMP2" 2>>valgrind.log
   RES=$?
   CMD="$CASSINI -p '$PIPESDIR' ${ARGS_ESC[@]}"
 
