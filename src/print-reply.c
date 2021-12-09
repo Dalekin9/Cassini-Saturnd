@@ -11,7 +11,7 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
         timing_string_from_timing(buf_timing, tasks[i]->t);
 
         // print taskid and timing
-        fprintf(stdout, "%lu: %s ", tasks[i]->taskid, buf_timing);
+        fprintf(stdout, "%u: %s ", tasks[i]->taskid, buf_timing);
 
         // print command line args
         for (uint32_t j = 0 ; j < tasks[i]->command->argc; j++){
@@ -26,7 +26,7 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
 /* Prints the reply to the request CREATE_TASK.
 - taskid : the id of the task that was created */
 void print_reply_c(uint32_t taskid) {
-    fprintf(stdout, "%lu\n", taskid);
+    fprintf(stdout, "%u\n", taskid);
 }
 
 /* Prints the error message bases on the error code.
@@ -54,7 +54,7 @@ void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
         int h = t->tm_hour;
         int m = t->tm_min;
         int s = t->tm_sec;
-        fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d %lu\n", year, month, day, h, m, s, runs[i]->exitcode);
+        fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d %u\n", year, month, day, h, m, s, runs[i]->exitcode);
     }
 }
 
