@@ -170,7 +170,6 @@ void read_reply_x(int fd, uint16_t repcode) {
             exitcode = htobe16(exitcode);
             runs[i]->exitcode = exitcode;
         }
-
         print_times_and_exit_codes(nbRuns, runs);
     }
 }
@@ -182,6 +181,8 @@ void read_reply_std(int fd, uint16_t repcode) {
     } else {
         string *output = read_string(fd);
         print_output(output);
+        free(output->s);
+        free(output);
     }
 }
 

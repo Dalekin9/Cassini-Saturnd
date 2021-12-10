@@ -16,8 +16,13 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
         // print command line args
         for (uint32_t j = 0 ; j < tasks[i]->command->argc; j++){
             fprintf(stdout, "%s ", tasks[i]->command->argv[j]->s);
+            free(tasks[i]->command->argv[j]->s);
+            free(tasks[i]->command->argv[j]);
         }
         fprintf(stdout, "\n");
+        free(tasks[i]->command->argv);
+        free(tasks[i]->command);
+        free(tasks[i]->t);
         free(tasks[i]);
     }
     free(tasks);
@@ -55,7 +60,9 @@ void print_times_and_exit_codes(uint32_t nbRuns, run** runs) {
         int m = t->tm_min;
         int s = t->tm_sec;
         fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d %u\n", year, month, day, h, m, s, runs[i]->exitcode);
+        free(runs[i]);
     }
+    free(runs);
 }
 
 /* Prints the answer to the GET_STDERR or GET_STDOUT requests :

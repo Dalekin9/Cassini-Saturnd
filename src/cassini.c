@@ -1,4 +1,5 @@
 #include "cassini.h"
+#include <stdbool.h>
 
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
@@ -38,7 +39,6 @@ string* argToString (char* c) {
       exit(EXIT_FAILURE);
     }
     memcpy(str->s, c, str->length);
-
     return str;
 }
 
@@ -175,10 +175,13 @@ int main(int argc, char * argv[]) {
 
     free(request_pipe_name);
     free(reply_pipe_name);
+    free(pipes_directory);
     return EXIT_SUCCESS;
 
     error:
     if (errno != 0) perror("main");
+    free(request_pipe_name);
+    free(reply_pipe_name);
     free(pipes_directory);
     pipes_directory = NULL;
     return EXIT_FAILURE;

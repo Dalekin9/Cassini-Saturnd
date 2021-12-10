@@ -40,6 +40,8 @@ void write_request_c(int fd, uint16_t operation, commandline *command, struct ti
         current += sizeof(uint32_t);
         memcpy(buff+current, str->s, str->length);
         current += str->length;
+        free(command->argv[i]->s);
+        free(command->argv[i]);
     }
 
     // write the request
