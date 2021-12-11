@@ -1,4 +1,6 @@
-#include "pipes.h"
+#include "../include/pipes.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /** Terminates the program if the pointer is NULL. */
 void is_malloc_error2(void *p) {
@@ -108,4 +110,56 @@ char *get_request_pipe_name(char *pipes_directory) {
     }
     strcat(request_pipe, basename);
     return request_pipe;
+}
+
+
+/* Opens the request pipe.
+- name = the path to the pipe.
+Function fails if the pipe can't be opened. */
+int open_request_pipe_cassini(char *name) {
+    int fd = open(name, O_WRONLY);
+    if (fd == -1) {
+        perror("Can't open the request pipe in cassini");
+        exit(EXIT_FAILURE);
+    }
+    return fd;
+}
+
+int open_request_pipe_saturnd(char *name) {
+    int fd = open(name, O_RDONLY);
+    if (fd == -1) {
+        perror("Can't open the request pipe in saturnd");
+        exit(EXIT_FAILURE);
+    }
+    return fd;
+}
+
+/* Opens the reply pipe.
+- name = the path to the pipe.
+Function fails if the pipe can't be opened. */
+int open_reply_pipe_cassini(char *name) {
+    int fd = open(name, O_WRONLY);
+    if (fd == -1) {
+        perror("Can't open the reply pipe in cassini");
+        exit(EXIT_FAILURE);
+    }
+    return fd;
+}
+
+int open_reply_pipe_saturnd(char *name) {
+    int fd = open(name, O_RDONLY);
+    if (fd == -1) {
+        perror("Can't open the reply pipe in saturnd");
+        exit(EXIT_FAILURE);
+    }
+    return fd;
+}
+
+void create_pipes(char *pipes_directory){
+    char *pipe_req = get_request_pipe_name(pipes_directory);
+    char *pipe_rep = get_reply_pipe_name(pipes_directory);
+    if (open(pipe_rep, O_RDONLY,O_NONBLOCK) < 0 || open(pipe_req, O_WRONLY,O_NONBLOCK) < 0) {
+       mkfifo(pipe_req,O_RDWR);
+       mkfifo(pipe_rep,O_RDWR);
+    }
 }
