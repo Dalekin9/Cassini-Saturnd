@@ -162,28 +162,29 @@ int main(int argc, char * argv[]) {
     }
     char *request_pipe_name = get_request_pipe_name(pipes_directory);
     char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
+    free(pipes_directory);
 
     // write the request
     pipes_fd[1] = open_request_pipe(request_pipe_name);
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
+    free(request_pipe_name);
 
     // read the reply
     pipes_fd[0] = open_reply_pipe(reply_pipe_name);
+    free(reply_pipe_name);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
-
-    free(request_pipe_name);
-    free(reply_pipe_name);
-    free(pipes_directory);
+    
+    
     return EXIT_SUCCESS;
 
     error:
-    if (errno != 0) perror("main");
     free(request_pipe_name);
     free(reply_pipe_name);
     free(pipes_directory);
     pipes_directory = NULL;
+    if (errno != 0) perror("main");
     return EXIT_FAILURE;
 }
 
