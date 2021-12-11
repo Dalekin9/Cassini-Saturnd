@@ -37,7 +37,8 @@ struct timing *read_timing(int fd) {
 
 /* Returns a string* read from fd. */
 string *read_string(int fd) {
-    string *str = malloc(sizeof(string));
+    string *str = malloc(sizeof(string) +1);
+    
     is_malloc_error(str);
 
     // read the length of the arg
@@ -46,11 +47,12 @@ string *read_string(int fd) {
     str->length = be32toh(strlength);
 
     // malloc the BYTE array for the arg
-    str->s = malloc(str->length * sizeof(BYTE));
+    str->s = malloc(str->length * sizeof(BYTE)+1);
     is_malloc_error(str->s);
 
     // read the arg
     is_read_error(read(fd, str->s, str->length));
+    str->s[str->length * sizeof(BYTE)] = 0;
 
     return str;
 }
@@ -152,7 +154,7 @@ void read_reply_x(int fd, uint16_t repcode) {
         read(fd, &nbRuns, sizeof(uint32_t));
         nbRuns = htobe32(nbRuns);
 
-        run **runs = malloc(sizeof(nbRuns * sizeof(run)));
+        run **runs = malloc(nbRuns * sizeof(run));
         is_malloc_error(runs);
 
         int64_t time;
