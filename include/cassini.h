@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "client-request.h"
 #include "server-reply.h"
