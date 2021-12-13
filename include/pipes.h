@@ -4,12 +4,13 @@
 #include <unistd.h> // open()
 #include <string.h> // strcat()
 
-int open_request_pipe(char*);
-int open_reply_pipe(char*);
-void close_pipe(int);
+#include <sys/types.h>
+#include <sys/stat.h>
 
+int open_pipe(char *name, int flags);
+void close_pipe(int);
+void create_pipes();
 
 char* write_default_pipes_directory();
-char *get_reply_pipe_name(char*);
-char *get_request_pipe_name(char*);
+char *get_pipe_name(char*, char*);
 

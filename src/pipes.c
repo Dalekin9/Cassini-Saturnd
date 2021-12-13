@@ -1,6 +1,4 @@
-#include "../include/pipes.h"
-#include <sys/types.h>
-#include <sys/stat.h>
+#include "pipes.h"
 
 /** Terminates the program if the pointer is NULL. */
 void is_malloc_error2(void *p) {
@@ -10,29 +8,19 @@ void is_malloc_error2(void *p) {
     }
 }
 
-/* Opens the request pipe.
-- name = the path to the pipe.
+/* Opens the pipe and returns the file descriptor.
+- name = the path to the pipe
+- flag = the permissions
 Function fails if the pipe can't be opened. */
-int open_request_pipe(char *name) {
-    int fd = open(name, O_RDWR);
+int open_pipe(char *name, int flags) {
+    int fd = open(name, flags);
     if (fd == -1) {
-        perror("Can't open the request pipe ");
+        fprintf(stderr, "Can't open pipe : %s with flag %d\n", name, flags);
         exit(EXIT_FAILURE);
     }
     return fd;
 }
 
-/* Opens the reply pipe.
-- name = the path to the pipe.
-Function fails if the pipe can't be opened. */
-int open_reply_pipe(char *name) {
-    int fd = open(name, O_RDWR);
-    if (fd == -1) {
-        perror("Can't open the reply pipe ");
-        exit(EXIT_FAILURE);
-    }
-    return fd;
-}
 
 /* Closes the pipe. Function fails if it can't be closed. */
 void close_pipe(int fd) {
@@ -64,102 +52,62 @@ char* write_default_pipes_directory() {
     return pipes_directory;
 }
 
-/* Returns the name for the reply pipe : pipe_directory/saturnd-reply-pipe
+/* Returns the name of the pipe : pipe_directory/basename
 Adds a '/' between the pipes_directory and the basename if necessary.
-
+- basename should be either "saturnd-request-pipe" or "saturnd-reply-pipe"
 Assumes pipes_directory is NOT null.
 */
-char *get_reply_pipe_name(char *pipes_directory) {
-    char basename[] = "saturnd-reply-pipe";
+char *get_pipe_name(char *pipes_directory, char *basename) {
     char slash[] = "/";
-    char *reply_pipe;
+    char *name;
 
     if (pipes_directory[strlen(pipes_directory)-1] == '/') {
-       reply_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
-       is_malloc_error2(reply_pipe);
-       strcpy(reply_pipe, pipes_directory);
+       name = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
+       is_malloc_error2(name);
+       strcpy(name, pipes_directory);
     } else { // need to add a "/" between dir name and basename
-       reply_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
-       is_malloc_error2(reply_pipe);
-       strcpy(reply_pipe, pipes_directory);
-       strcat(reply_pipe, slash);
+       name = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
+       is_malloc_error2(name);
+       strcpy(name, pipes_directory);
+       strcat(name, slash);
     }
-    strcat(reply_pipe, basename);
-    return reply_pipe;
+    strcat(name, basename);
+    return name;
 }
 
-/* Returns the name for the request pipe : pipe_directory/saturnd-request-pipe
-Adds a '/' between the pipes_directory and the basename if necessary.
 
-Assumes pipes_directory is NOT null.
+/* Returns 1 if the pipe exists, 0 otherwise
+* - name : the path to the pipe
 */
-char *get_request_pipe_name(char *pipes_directory) {
-    char basename[] = "saturnd-request-pipe";
-    char slash[] = "/";
-    char *request_pipe;
-
-    if (pipes_directory[strlen(pipes_directory)-1] == '/') {
-       request_pipe = malloc((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
-       is_malloc_error2(request_pipe);
-       strcpy(request_pipe, pipes_directory);
-    } else { // need to add a "/" between dir name and basename
-       request_pipe = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
-       is_malloc_error2(request_pipe);
-       strcpy(request_pipe, pipes_directory);
-       strcat(request_pipe, slash);
+int test_pipe_exists(char *name) {
+    int fd = open(name, O_RDONLY, O_NONBLOCK);
+    if (fd < 0) {
+        return 0;
+    } else {
+        close(fd);
+        return 1;
     }
-    strcat(request_pipe, basename);
-    return request_pipe;
 }
 
+/* Creates the pipes at the default /tmp/<USERNAME>/saturnd/pipes location
+ * if they don't already exist
+ */
+void create_pipes() {
+    // find the names
+    char *pipes_directory = write_default_pipes_directory();
+    char *pipe_req = get_pipe_name(pipes_directory, "saturnd-request-pipe");
+    char *pipe_rep = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
 
-/* Opens the request pipe.
-- name = the path to the pipe.
-Function fails if the pipe can't be opened. */
-int open_request_pipe_cassini(char *name) {
-    int fd = open(name, O_WRONLY);
-    if (fd == -1) {
-        perror("Can't open the request pipe in cassini");
-        exit(EXIT_FAILURE);
+    // test request pipe
+    if (! test_pipe_exists(pipe_req)) {
+        mkfifo(pipe_req, O_RDWR);
     }
-    return fd;
-}
+    // test the reply pipe
+    if (! test_pipe_exists(pipe_rep)) {
+        mkfifo(pipe_rep, O_RDWR);
+    }
 
-int open_request_pipe_saturnd(char *name) {
-    int fd = open(name, O_RDONLY);
-    if (fd == -1) {
-        perror("Can't open the request pipe in saturnd");
-        exit(EXIT_FAILURE);
-    }
-    return fd;
-}
-
-/* Opens the reply pipe.
-- name = the path to the pipe.
-Function fails if the pipe can't be opened. */
-int open_reply_pipe_cassini(char *name) {
-    int fd = open(name, O_WRONLY);
-    if (fd == -1) {
-        perror("Can't open the reply pipe in cassini");
-        exit(EXIT_FAILURE);
-    }
-    return fd;
-}
-
-int open_reply_pipe_saturnd(char *name) {
-    int fd = open(name, O_RDONLY);
-    if (fd == -1) {
-        perror("Can't open the reply pipe in saturnd");
-        exit(EXIT_FAILURE);
-    }
-    return fd;
-}
-
-void create_pipes(char *pipes_directory){
-    char *pipe_req = get_request_pipe_name(pipes_directory);
-    char *pipe_rep = get_reply_pipe_name(pipes_directory);
-    if (open(pipe_rep, O_RDONLY,O_NONBLOCK) < 0 || open(pipe_req, O_WRONLY,O_NONBLOCK) < 0) {
-       mkfifo(pipe_req,O_RDWR);
-       mkfifo(pipe_rep,O_RDWR);
-    }
+    free(pipe_rep);
+    free(pipe_req);
+    free(pipes_directory);
 }

@@ -160,31 +160,31 @@ int main(int argc, char * argv[]) {
     if (pipes_directory == NULL) {
         write_default_pipes_directory(pipes_directory);
     }
-    char *request_pipe_name = get_request_pipe_name(pipes_directory);
-    char *reply_pipe_name = get_reply_pipe_name(pipes_directory);
+    char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
+    char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
     free(pipes_directory);
 
     // write the request
-    pipes_fd[1] = open_request_pipe(request_pipe_name);
+    pipes_fd[1] = open_pipe(request_pipe_name, O_RDWR);
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
-    free(request_pipe_name);
 
     // read the reply
-    pipes_fd[0] = open_reply_pipe(reply_pipe_name);
-    free(reply_pipe_name);
+    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDWR);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
-    
-    
+
+
+    free(request_pipe_name);
+    free(reply_pipe_name);
     return EXIT_SUCCESS;
 
     error:
+    if (errno != 0) perror("main");
+    free(pipes_directory);
     free(request_pipe_name);
     free(reply_pipe_name);
-    free(pipes_directory);
     pipes_directory = NULL;
-    if (errno != 0) perror("main");
     return EXIT_FAILURE;
 }
 
