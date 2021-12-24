@@ -95,8 +95,3 @@ void write_request(int fd, uint16_t operation, commandline *command, struct timi
             break;
     }
 }
-
-
-void saturnd_write_request_c(uint64_t id){
-
-}

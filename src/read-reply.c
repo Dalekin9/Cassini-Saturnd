@@ -225,15 +225,3 @@ void read_reply(int fd, uint16_t operation) {
 
     }
 }
-
-void saturnd_read_reply_c (int fd){
-
-    //lire le timing
-    struct timing *t = read_timing(fd);
-    //lire commandline
-    uint32_t argc;
-    is_read_error(read(fd, &argc, sizeof(uint32_t)));
-    argc = be32toh(argc);
-    string **s = read_args(fd, argc);
-
-}
