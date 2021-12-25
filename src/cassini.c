@@ -143,7 +143,7 @@ int main(int argc, char * argv[]) {
         return 0;
       }
     }
-
+    
     // if creating a task, fill the struct with the data
     // and get all the command arguments
     if (operation == CLIENT_REQUEST_CREATE_TASK) {
@@ -157,25 +157,26 @@ int main(int argc, char * argv[]) {
 
     // find out the complete filenames of the pipes
     if (pipes_directory == NULL) {
-        write_default_pipes_directory(pipes_directory);
+        pipes_directory = write_default_pipes_directory();
     }
     char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
     char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
-    free(pipes_directory);
+    
+    //ouverture des pipes
+    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY  | O_NONBLOCK);
+    pipes_fd[1] = open_pipe(request_pipe_name, O_WRONLY | O_NONBLOCK);
 
     // write the request
-    pipes_fd[1] = open_pipe(request_pipe_name, O_RDWR);
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
 
     // read the reply
-    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDWR);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
 
-
     free(request_pipe_name);
     free(reply_pipe_name);
+    free(pipes_directory);
     return EXIT_SUCCESS;
 
     error:

@@ -15,7 +15,7 @@ Function fails if the pipe can't be opened. */
 int open_pipe(char *name, int flags) {
     int fd = open(name, flags);
     if (fd == -1) {
-        fprintf(stderr, "Can't open pipe : %s with flag %d\n", name, flags);
+        fprintf(stderr, "Can't open pipe : %s with flag %d => %s\n", name, flags, strerror(errno));
         exit(EXIT_FAILURE);
     }
     return fd;
@@ -41,7 +41,7 @@ char* write_default_pipes_directory() {
 	char buf1[] = "/tmp/";
     char buf2[] = "/saturnd/pipes/";
 
-	char *pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2)) * sizeof(char));
+	char *pipes_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2) +1) * sizeof(char));
     is_malloc_error2(pipes_directory);
 
 	strcpy(pipes_directory, buf1);
@@ -62,11 +62,11 @@ char *get_pipe_name(char *pipes_directory, char *basename) {
     char *name;
 
     if (pipes_directory[strlen(pipes_directory)-1] == '/') {
-       name = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 1);
+       name = malloc ((strlen(pipes_directory) + strlen(basename) +1) * sizeof(char));
        is_malloc_error2(name);
        strcpy(name, pipes_directory);
     } else { // need to add a "/" between dir name and basename
-       name = malloc ((strlen(pipes_directory) + strlen(basename)) * sizeof(char) + 2);
+       name = malloc ((strlen(pipes_directory) + strlen(basename) + 2) * sizeof(char));
        is_malloc_error2(name);
        strcpy(name, pipes_directory);
        strcat(name, slash);
@@ -80,7 +80,7 @@ char *get_pipe_name(char *pipes_directory, char *basename) {
 * - name : the path to the pipe
 */
 int test_pipe_exists(char *name) {
-    int fd = open(name, O_RDONLY, O_NONBLOCK);
+    int fd = open(name, O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         return 0;
     } else {
@@ -100,11 +100,12 @@ void create_pipes() {
 
     // test request pipe
     if (! test_pipe_exists(pipe_req)) {
-        mkfifo(pipe_req, O_RDWR);
+        mkfifo(pipe_req, S_IRWXU);
+        
     }
     // test the reply pipe
     if (! test_pipe_exists(pipe_rep)) {
-        mkfifo(pipe_rep, O_RDWR);
+        mkfifo(pipe_rep, S_IRWXU);
     }
 
     free(pipe_rep);

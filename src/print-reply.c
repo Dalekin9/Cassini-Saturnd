@@ -30,8 +30,8 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
 
 /* Prints the reply to the request CREATE_TASK.
 - taskid : the id of the task that was created */
-void print_reply_c(uint32_t taskid) {
-    fprintf(stdout, "%u\n", taskid);
+void print_reply_c(uint64_t taskid) {
+    fprintf(stdout, "%lu\n", taskid);
 }
 
 /* Prints the error message bases on the error code.

@@ -62,11 +62,9 @@ Returns a string** that contains all the arguments. */
 string **read_args(int fd, uint32_t argc) {
     string **argv = malloc(argc * sizeof(string));
     is_malloc_error(argv);
-
     for(uint32_t j = 0; j < argc; j++){
         argv[j] = read_string(fd);
     }
-
     return argv;
 }
 
@@ -224,16 +222,4 @@ void read_reply(int fd, uint16_t operation) {
         case CLIENT_REQUEST_TERMINATE: break; // nothing to do
 
     }
-}
-
-void saturnd_read_reply_c (int fd){
-
-    //lire le timing
-    struct timing *t = read_timing(fd);
-    //lire commandline
-    uint32_t argc;
-    is_read_error(read(fd, &argc, sizeof(uint32_t)));
-    argc = be32toh(argc);
-    string **s = read_args(fd, argc);
-
 }
