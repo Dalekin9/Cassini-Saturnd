@@ -8,7 +8,6 @@ char **get_char_from_string(string **argv, uint32_t length){
     for (uint32_t i = 0; i < length; i ++){
         uint32_t t = argv[i]->length + 1;
 
-        printf("taille de t : %u\n",t);
         tab[i] = malloc(sizeof(char) * t); // +1 for the \0 at the end of the char*
                                              // (no included in the struct string)
         is_malloc_error(tab[i]);
@@ -130,8 +129,6 @@ void run_one_task(s_task *task, uint64_t taskid) {
 
 void run_tasks(s_task **tasks, uint64_t nb_tasks){
     for (int i = 0; i < nb_tasks; i++) {
-        fprintf(stdout, "id task %d\n", i);
-        
         if(!(tasks[i]->is_removed)) {
             if (is_correct_timing(tasks[i]->t)) {
                 int f = fork();

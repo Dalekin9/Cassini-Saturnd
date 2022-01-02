@@ -4,14 +4,16 @@
    with it's corresponding error if it is err*/
 void write_reply_code(int fd, bool ok, uint16_t errcode){
     if(ok){
-        uint16_t rep = SERVER_REPLY_OK;
+        uint16_t rep = be16toh(SERVER_REPLY_OK);
         write(fd, &rep, sizeof(uint16_t));
     }else{
         size_t length = sizeof(uint16_t) * 2;
         BYTE buff[length];
         uint16_t rep = SERVER_REPLY_ERROR;
+        rep = be16toh(rep);
+        uint16_t error = be16toh(errcode);
         memcpy(buff, &rep, sizeof(uint16_t));
-        memcpy(buff + sizeof(uint16_t), &errcode, sizeof(uint16_t));
+        memcpy(buff + sizeof(uint16_t), &error, sizeof(uint16_t));
         write(fd, buff, length);
 
         close_pipe(fd);
@@ -143,7 +145,6 @@ void write_times_exitcodes(int fd,bool ok, run **runs, uint32_t nbRuns, uint16_t
 }
 
 void write_reply_t_ec(uint64_t taskid){
-
     int fd = open_reply_pipe_saturnd();
 
     char* folder_path = get_directory_id_path(taskid);
@@ -153,47 +154,62 @@ void write_reply_t_ec(uint64_t taskid){
     strcpy(runs_path, folder_path);
     strcat(runs_path,"/runs");
 
+    char* nb_runs_path = malloc((strlen(folder_path) + strlen("/nb_runs") +1) * sizeof(char));
+    is_malloc_error(nb_runs_path);
+
+    strcpy(runs_path, folder_path);
+    strcat(runs_path,"/nb_runs");
+
     free(folder_path);
 
     int fd_runs = open(runs_path, O_RDONLY);
     if(fd_runs == -1){
         free(runs_path);
+        free(nb_runs_path);
         write_times_exitcodes(fd, false,NULL, 0, SERVER_REPLY_ERROR_NOT_FOUND);
-    }
+    }else{
 
-    uint32_t nb_runs = 0;
-    bool end = false;
+        int nb_runs_fd = open(nb_runs_path, O_RDONLY);
+        uint32_t nb_runs;
+        
+        read(nb_runs_fd, &nb_runs, sizeof(uint32_t));
+        if(nb_runs_fd < 1){
+            free(runs_path);
+            free(nb_runs_path);
+            close(nb_runs_fd);
+            write_times_exitcodes(fd, false, NULL, 0, SERVER_REPLY_ERROR_NEVER_RUN);
+        }else{
+            close(nb_runs_fd);
+            free(nb_runs_path);
 
-    size_t single = sizeof(int64_t) + sizeof(uint16_t);
-    run **runs = malloc(single);
-    is_malloc_error(runs);
-    while(!end){
-        int64_t *date;
-        uint16_t *exitc;
+            size_t single = sizeof(int64_t) + sizeof(uint16_t);
+            run **runs = malloc(single * nb_runs);
+            is_malloc_error(runs);
+            for(uint32_t i = 0; i < nb_runs; i++){
+                int64_t *date;
+                uint16_t *exitc;
 
-        int res = read(fd_runs, &date, sizeof(int64_t));
-        if(res == 0){
-            end = true;
-        }else if (res > 0) {
-            nb_runs++;
-            runs = realloc(runs,single * nb_runs);
-            run *r = malloc(single);
-            is_malloc_error(r);
-            
-            r->time = *date;
-            if (read(fd_runs, &exitc, sizeof(uint16_t) == -1)){
-                perror("Erreur de read");
-                exit(EXIT_FAILURE);
-            } 
-            r->exitcode = *exitc;
-            runs[nb_runs - 1] = r;
-        } else {
-            perror("Erreur de read");
-            exit(EXIT_FAILURE);
+                int res = read(fd_runs, &date, sizeof(int64_t));
+                if (res > 0) {
+                    run *r = malloc(single);
+                    is_malloc_error(r);
+                    
+                    r->time = *date;
+                    if (read(fd_runs, &exitc, sizeof(uint16_t) == -1)){
+                        perror("Erreur de read");
+                        exit(EXIT_FAILURE);
+                    } 
+                    r->exitcode = *exitc;
+                    runs[nb_runs - 1] = r;
+                } else {
+                    perror("Erreur de read");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            free(runs_path);
+            write_times_exitcodes(fd, true, runs, nb_runs, 0);
         }
     }
-    free(runs_path);
-    write_times_exitcodes(fd, true, runs, nb_runs, 0);
 }
 
 void write_reply_rm(uint64_t taskid){

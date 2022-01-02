@@ -26,8 +26,7 @@ void read_request_std(int fd, int is_stdout) {
 }
 
 /*  Reads the request for remove then launches the methods to remove a task and write the reply.  */
-void read_request_rm(int fd){
-    uint64_t task_id = read_taskID(fd);
+void read_request_rm(int fd, uint64_t task_id){
     write_reply_rm(task_id);
 }
 

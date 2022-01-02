@@ -81,11 +81,9 @@ s_task *read_task_timing(s_task *task, char* dir_path) {
 uint64_t read_max_id(char *dir_path) {
     char *filename = "/last_taskid";
     char *tmp = get_directory_path();
-    fprintf(stdout, "%s\n", tmp);
     char *path = malloc((strlen(filename) + strlen(tmp) + 2) * sizeof(char));
     strcpy(path, tmp);
     strcat(path, filename);
-    fprintf(stdout, "%s\n", path);
     free(tmp);
 
     int fd = open(path, O_RDONLY);
@@ -126,7 +124,6 @@ int main(int argc, char * argv[]) {
 
      char *path = get_directory_tasks_path();
      uint64_t max_id = read_max_id(path);
-     printf("max id : %lu\n",max_id);
      s_task** tasks = read_all_tasks(max_id);
      uint64_t nb_tasks = max_id + 1;
 
@@ -150,8 +147,12 @@ int main(int argc, char * argv[]) {
                     read_request_c(fd_req);
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
-                    read_request_rm(fd_req);
+               {
+                    uint64_t task_ID = read_taskID(fd_req);
+                    read_request_rm(fd_req, task_ID);
+                    tasks[task_ID]->is_removed = true;
                     break;
+               }
                case CLIENT_REQUEST_GET_STDERR :
                     read_request_std(fd_req, false);
                     break;
