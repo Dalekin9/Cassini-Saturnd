@@ -1,5 +1,4 @@
 #include "cassini.h"
-
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
       or: cassini [OPTIONS]    -> same\n\
@@ -155,6 +154,8 @@ int main(int argc, char * argv[]) {
       command = get_commandline_arguments(argc, argv, optind);
     }
 
+    create_pipes();
+
     // find out the complete filenames of the pipes
     if (pipes_directory == NULL) {
         pipes_directory = write_default_pipes_directory();
@@ -168,6 +169,7 @@ int main(int argc, char * argv[]) {
     // write the request
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
+    
 
     // read the reply
     pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY);

@@ -101,7 +101,6 @@ void create_pipes() {
     // test request pipe
     if (! test_pipe_exists(pipe_req)) {
         mkfifo(pipe_req, S_IRWXU);
-        
     }
     // test the reply pipe
     if (! test_pipe_exists(pipe_rep)) {
