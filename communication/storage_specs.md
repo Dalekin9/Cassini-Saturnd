@@ -23,5 +23,4 @@ Pour chaque tache, creer un dossier dont le nom est "<TASKID>" et qui contient 5
   - pour lire, on lit a chaque fois un int64 (la date) et un uint16 (la val de retour),
     jusqu'a ce que le fichier soit vide
 
-Quand on supprime une tache, on supprime le dossier correspondant.
 

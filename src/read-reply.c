@@ -90,7 +90,6 @@ void read_reply(int fd, uint16_t operation) {
     uint16_t repcode;
     read(fd, &repcode, sizeof(uint16_t));
     repcode = htobe16(repcode);
-
     switch (operation) {
         case CLIENT_REQUEST_LIST_TASKS:
             read_reply_l(fd);
