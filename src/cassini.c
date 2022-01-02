@@ -1,5 +1,4 @@
 #include "cassini.h"
-
 const char usage_info[] = "\
    usage: cassini [OPTIONS] -l -> list all tasks\n\
       or: cassini [OPTIONS]    -> same\n\
@@ -155,21 +154,28 @@ int main(int argc, char * argv[]) {
       command = get_commandline_arguments(argc, argv, optind);
     }
 
+    create_pipes();
+
     // find out the complete filenames of the pipes
     if (pipes_directory == NULL) {
-        write_default_pipes_directory(pipes_directory);
+        pipes_directory = write_default_pipes_directory();
     }
     char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
     char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
     free(pipes_directory);
 
     // write the request
-    pipes_fd[1] = open_pipe(request_pipe_name, O_RDWR);
+    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY | O_NONBLOCK);
+    int saturnpiperead = open_pipe(request_pipe_name, O_RDONLY | O_NONBLOCK);
+    int saturnpipewrite = open_pipe(reply_pipe_name, O_WRONLY | O_NONBLOCK);
+    pipes_fd[1] = open_pipe(request_pipe_name, O_WRONLY | O_NONBLOCK);
+    
     write_request(pipes_fd[1], operation, command, t, taskid);
     close_pipe(pipes_fd[1]);
+    
 
     // read the reply
-    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDWR);
+  
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
 
