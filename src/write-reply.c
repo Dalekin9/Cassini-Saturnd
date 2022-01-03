@@ -3,7 +3,6 @@
 void write_reply_c (struct timing *t, uint32_t argc, string **argv){
     // create the task
     uint64_t taskid = create_new_task(t, argc, argv);
-    fprintf(stdout, "%d\n", taskid);
 
     // open the fd
     int fd = open_reply_pipe_saturnd();

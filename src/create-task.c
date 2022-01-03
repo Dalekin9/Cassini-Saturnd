@@ -66,15 +66,17 @@ uint64_t create_new_task(struct timing *t, uint32_t length, string **s) {
     fd = open(file_argv, O_WRONLY);
     int size = 0;
     for (int i = 0; i < length; i++) {
-        size += ((s[i]->length) * sizeof(char));
+        size += ((s[i]->length + 1) * sizeof(char));
     }
     size += sizeof(char);
     char *buf = malloc(size);
     for (int i = 0; i < length; i++) {
         if (i == 0) {
             strcpy(buf, s[i]->s);
+            strcat(buf, " ");
         } else {
             strcat(buf, s[i]->s);
+            strcat(buf, " ");
         }
     }
     write(fd,buf,size);
