@@ -15,3 +15,6 @@ string *read_string(int fd);
 
 struct timing *read_timing(int fd);
 /* Reads a timing from the open fd and returns it. */
+
+task **parse_tasks(int fd, uint16_t nbTasks);
+task *parse_one_task(int fd);

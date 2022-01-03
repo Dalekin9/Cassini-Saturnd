@@ -17,7 +17,7 @@ CFLAGS += -I$(LIBINCLUDE)
 CASSINI_OBJFILES = src/cassini.o src/timing-text-io.o src/pipes.o src/write-request.o src/read-reply.o src/print-reply.o src/common-read.o
 
 # all the object files saturnd needs
-SATURND_OBJFILES = src/saturnd.o src/read-request.o src/write-reply.o src/pipes.o src/common-read.o
+SATURND_OBJFILES = src/saturnd.o src/read-request.o src/write-reply.o src/pipes.o src/common-read.o src/folder.o src/create-task.o src/common-folder.o
 
 
 %.o: %.c $(DEPS)

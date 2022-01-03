@@ -12,5 +12,6 @@
 
 #include "read-request.h"
 #include "pipes.h"
+#include "folder.h"
 
 #endif //SATURND_H

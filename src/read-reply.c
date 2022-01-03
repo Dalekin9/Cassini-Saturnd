@@ -1,47 +1,5 @@
 #include "read-reply.h"
 
-/* Reads and returns one task read from fd. */
-task *parse_one_task(int fd) {
-    // malloc the task
-    task *t = malloc(sizeof(task));
-    is_malloc_error(t);
-
-    // read the id of the task
-    uint64_t taskid;
-    is_read_error(read(fd, &taskid, sizeof(uint64_t)));
-    t->taskid = be64toh(taskid);
-
-    // read the timing of the task
-    t->t = read_timing(fd);
-
-    // read the command and its args
-    t->command = malloc(sizeof(commandline));
-    is_malloc_error(t->command);
-
-    // read the number of args
-    uint32_t argc;
-    is_read_error(read(fd, &argc, sizeof(uint32_t)));
-    t->command->argc = be32toh(argc);
-
-    if (argc != 0) { // read the args
-        t->command->argv = read_args(fd, t->command->argc);
-    }
-
-    return t;
-}
-
-/* Reads nbTasks tasks from fd.
-Returns the task** that contains all the info. */
-task **parse_tasks(int fd, uint16_t nbTasks) {
-    task **tasks = malloc(nbTasks * sizeof(task));
-    is_malloc_error(tasks);
-
-    for(uint16_t i = 0; i < nbTasks; i++){
-        tasks[i] = parse_one_task(fd);
-    }
-    return tasks;
-}
-
 /* Reads the reply to the LIST_TASK request. */
 void read_reply_l(int fd) {
     // read the number of tasks
