@@ -11,5 +11,6 @@
 
 void write_reply_c (struct timing *t, uint32_t length, string **s);
 void write_reply_std(uint64_t taskid, int is_stdout);
+void write_reply_terminate();
 
 #endif //SATURND_PRINT_H

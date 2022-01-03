@@ -82,3 +82,9 @@ void write_reply_std(uint64_t taskid, int is_stdout) {
     }
     close_pipe(fd);
 }
+
+void write_reply_terminate() {
+    uint16_t code = htobe16(SERVER_REPLY_OK);
+    int fd = open_reply_pipe_saturnd();
+    write(fd, &code, sizeof(uint16_t));
+}

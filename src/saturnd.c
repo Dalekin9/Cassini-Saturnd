@@ -9,8 +9,6 @@ int main(int argc, char * argv[]) {
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
 
      while (1) {
-
-          //ouverture des pipes
           int fd_req = open_pipe(request_pipe_name, O_RDONLY);
 
           uint16_t op;
@@ -34,11 +32,11 @@ int main(int argc, char * argv[]) {
                case CLIENT_REQUEST_LIST_TASKS :
                     break;
                case CLIENT_REQUEST_TERMINATE :
+                    write_reply_terminate();
+                    exit(0); // kill the deamon
                     break;
                default:
                     break;
           }
      }
-     
-
 }
