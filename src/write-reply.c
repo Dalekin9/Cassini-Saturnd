@@ -1,10 +1,7 @@
 #include "write-reply.h"
 
 //write the answer in the reply pipe
-void saturnd_print_reply_c (uint64_t id){
-    char *pipes_directory = write_default_pipes_directory();
-    char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
-    int fd = open(reply_pipe_name, O_WRONLY | O_NONBLOCK);
+void saturnd_print_reply_c (uint64_t id, int fd){
 
     int length = sizeof(uint16_t) + sizeof(uint64_t);
     BYTE buff[length];
@@ -15,7 +12,5 @@ void saturnd_print_reply_c (uint64_t id){
 
     // write the request to the pipe
     write(fd, buff, length);
-    close(fd);
-    free(pipes_directory);
-    free(reply_pipe_name);
+    close_pipe(fd);
 }

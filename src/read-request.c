@@ -102,7 +102,7 @@ char* get_file_path(char *directory, char *file) {
 }
 
 
-void create_folder_task(struct timing *t, uint32_t length, string **s) {
+void create_folder_task(struct timing *t, uint32_t length, string **s, int fd_rep) {
     char *dir = get_directory_path(); //general directory
     char *file_last_id = get_file_path(dir, "/last_taskid"); //for last_taskid
     //recuperer dernier id dispo
@@ -183,11 +183,11 @@ void create_folder_task(struct timing *t, uint32_t length, string **s) {
     free(s);
 
     //print reponse dans tube de reponse avc id
-    saturnd_print_reply_c(id);
+    saturnd_print_reply_c(id, fd_rep);
 }
 
 
-void saturnd_read_reply_c (int fd){
+void saturnd_read_reply_c (int fd, int fd_rep){
     //lire le timing
     struct timing *t = read_timing(fd);
 
@@ -196,6 +196,6 @@ void saturnd_read_reply_c (int fd){
     is_read_error(read(fd, &argc, sizeof(uint32_t)));
     uint32_t val = be32toh(argc);
     string **st = read_args(fd, val);
-
-    create_folder_task(t,val,st);
+    close_pipe(fd);
+    create_folder_task(t,val,st, fd_rep);
 }

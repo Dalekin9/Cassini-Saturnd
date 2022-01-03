@@ -14,6 +14,6 @@ void is_mkdir_error(int res);
 char* get_directory_path();
 char* get_file_path(char *directory, char *file);
 
-void saturnd_read_reply_c (int fd);
+void saturnd_read_reply_c (int fd, int fd_rep);
 
 #endif //SATURND_READ_H

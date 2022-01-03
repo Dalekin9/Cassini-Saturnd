@@ -163,7 +163,6 @@ int main(int argc, char * argv[]) {
     char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
     
     //ouverture des pipes
-    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY  | O_NONBLOCK);
     pipes_fd[1] = open_pipe(request_pipe_name, O_WRONLY | O_NONBLOCK);
 
     // write the request
@@ -171,6 +170,7 @@ int main(int argc, char * argv[]) {
     close_pipe(pipes_fd[1]);
 
     // read the reply
+    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
 
