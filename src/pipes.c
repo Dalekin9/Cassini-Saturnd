@@ -112,3 +112,13 @@ void create_pipes() {
     free(pipe_req);
     free(pipes_directory);
 }
+
+int open_reply_pipe_saturnd() {
+     char *pipes_directory = write_default_pipes_directory();
+     char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
+     int fd_rep = open_pipe(reply_pipe_name, O_WRONLY);
+
+     free(pipes_directory);
+     free(reply_pipe_name);
+     return fd_rep;
+}

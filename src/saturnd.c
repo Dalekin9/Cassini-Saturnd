@@ -1,10 +1,5 @@
 #include "saturnd.h"
 
-// saturnd option create : -c
-void saturnd_opt_c(int fd, int fd_rep) {
-    saturnd_read_reply_c(fd, fd_rep);
-}
-
 int main(int argc, char * argv[]) {
 
      create_files();
@@ -12,13 +7,11 @@ int main(int argc, char * argv[]) {
 
      char *pipes_directory = write_default_pipes_directory();
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
-     char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");
-    
+
      while (1) {
 
           //ouverture des pipes
           int fd_req = open_pipe(request_pipe_name, O_RDONLY);
-          int fd_rep = open_pipe(reply_pipe_name, O_WRONLY);
 
           uint16_t op;
           read(fd_req,&op,sizeof(uint16_t));
@@ -26,13 +19,15 @@ int main(int argc, char * argv[]) {
 
           switch (op){
                case CLIENT_REQUEST_CREATE_TASK :
-                    saturnd_opt_c(fd_req, fd_rep);
+                    read_request_c(fd_req);
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
                     break;
                case CLIENT_REQUEST_GET_STDERR :
+                    read_request_std(fd_req, false);
                     break;
                case CLIENT_REQUEST_GET_STDOUT :
+                    read_request_std(fd_req, true);
                     break;
                case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
                     break;

@@ -30,33 +30,15 @@ uint64_t get_avalaible_id (char *file){
     return id;
 }
 
-/* Returns the default path for the pipes directory : "/tmp/<USERNAME>/saturnd/tasks/id" */
-char* get_directory_id_path(char *d, uint64_t id) {
-    char *a = "/tasks/";
-
-    char *ids = malloc(sizeof(uint64_t)*sizeof(char));
-    is_malloc_error(ids);
-    sprintf(ids,"%lu",id);
-
-    char *id_directory = malloc((strlen(d) + strlen(a) + strlen(ids) + 1) * sizeof(char));
-    is_malloc_error(id_directory);
-
-    strcpy(id_directory, d);
-    strcat(id_directory, a);
-    strcat(id_directory, ids);
-
-    free(ids);
-    return id_directory;
-}
-
-void create_folder_task(struct timing *t, uint32_t length, string **s, int fd_rep) {
+/* creates a task and returns the id of the task */
+uint64_t create_new_task(struct timing *t, uint32_t length, string **s) {
     char *dir = get_directory_path(); //general directory
     char *file_last_id = get_file_path(dir, "/last_taskid"); //for last_taskid
     //recuperer dernier id dispo
     uint64_t id = get_avalaible_id(file_last_id);
 
     //creer dossier nom id dans tasks
-    char *directory_name = get_directory_id_path(dir, id); //for id directory
+    char *directory_name = get_directory_id_path(id); //for id directory
     is_mkdir_error(mkdir(directory_name, 0700));
 
     // fichier "timing" qui contient les 3 champs de la structure
@@ -98,29 +80,35 @@ void create_folder_task(struct timing *t, uint32_t length, string **s, int fd_re
     write(fd,buf,size);
     close(fd);
     free(buf);
-    // deux fichiers "stdout" et "stderr" qui contiennent les resultats des derniers runs.
-    char *file_stdout = get_file_path(directory_name, "/stdout");
-    fd = open(file_stdout,O_CREAT,S_IRWXU);
-    close(fd); 
 
-    char *file_stderr = get_file_path(directory_name, "/stderr");
-    fd = open(file_stderr,O_CREAT,S_IRWXU);
-    close(fd); 
-    // un fichier "runs" qui contient la date et la valeur de retour de chaque execution On mettra toutes les executions dans ce meme fichier :
+    // They should only be created after the first run => that way, no file = no run
+    // It is not enough that the files are empty : some cmds don't print anything anywhere.
+//    // deux fichiers "stdout" et "stderr" qui contiennent les resultats des derniers runs.
+//    char *file_stdout = get_file_path(directory_name, "/stdout");
+//    fd = open(file_stdout,O_CREAT,S_IRWXU);
+//    close(fd);
+//
+//    char *file_stderr = get_file_path(directory_name, "/stderr");
+//    fd = open(file_stderr,O_CREAT,S_IRWXU);
+//    close(fd);
+
+    // un fichier "runs" qui contient la date et la valeur de retour de chaque execution
+    // On mettra toutes les executions dans ce meme fichier :
     char *file_runs = get_file_path(directory_name, "/runs");
     fd = open(file_runs,O_CREAT,S_IRWXU);
     close(fd); 
 
-    //update le dernier id utiliser
+    //update le dernier id utilise
     update_last_id(file_last_id, id);
+
     //free les mallocs
     free(dir);
     free(file_last_id);
     free(directory_name);
     free(file_timing);
     free(file_argv);
-    free(file_stdout);
-    free(file_stderr);
+//    free(file_stdout);
+//    free(file_stderr);
     free(file_runs);
     free(t);
     for (int i = 0; i < length; i++){
@@ -129,6 +117,5 @@ void create_folder_task(struct timing *t, uint32_t length, string **s, int fd_re
     }
     free(s);
 
-    //print reponse dans tube de reponse avc id
-    saturnd_print_reply_c(id, fd_rep);
+    return id;
 }

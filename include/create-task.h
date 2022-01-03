@@ -11,6 +11,6 @@
 #include "write-reply.h"
 #include "server-reply.h"
 
-void create_folder_task(struct timing *t, uint32_t length, string **s, int fd_rep);
+uint64_t create_new_task(struct timing *t, uint32_t length, string **s);
 
 #endif // CREATE_TASK_H
