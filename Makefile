@@ -16,22 +16,26 @@ CFLAGS += -I$(LIBINCLUDE)
 # all the object files cassini needs
 CASSINI_OBJFILES = src/cassini.o src/timing-text-io.o src/pipes.o src/write-request.o src/read-reply.o src/print-reply.o
 
+# all the object files saturnd needs
+SATURND_OBJFILES = src/saturnd.o src/read-request.o src/write-reply.o src/pipes.o
+
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # compile both the client and the daemon
-all: cassini
+all: cassini saturnd
 
 # the client
 cassini: $(CASSINI_OBJFILES)
 	$(CC) $(CFLAGS) -o cassini $(CASSINI_OBJFILES)
 
+# the daemon
+saturnd: $(SATURND_OBJFILES)
+	$(CC) $(CFLAGS) -o saturnd $(SATURND_OBJFILES)
+
 # to remove the compiled files
 .PHONY: clean
 clean:
 	rm -f cassini $(CASSINI_OBJFILES)
-
-# also removes compiled files
-.PHONY: distclean
-distclean:
-	rm -f cassini $(CASSINI_OBJFILES)
+	rm -f saturnd $(SATURND_OBJFILES)
