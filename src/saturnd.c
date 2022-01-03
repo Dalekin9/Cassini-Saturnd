@@ -3,7 +3,7 @@
 //creer les dossiers intermediaires si necessaire : tmp, user, saturnd, tasks et pipes
 void create_intermediaire_folders(){
     char *username = malloc(200 * sizeof(char));
-    is_malloc_error3(username);
+    is_malloc_error(username);
     getlogin_r(username, 200);
     
     char *tmp1 = "/tmp";
@@ -69,4 +69,8 @@ void create_files(){
 void saturnd_opt_c(int fd) {
     saturnd_read_reply_c(fd);
     close(fd);
+}
+
+int main(int argc, char * argv[]) {
+//TODO
 }

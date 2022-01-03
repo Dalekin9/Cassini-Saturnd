@@ -19,14 +19,6 @@ void is_mkdir_error(int res){
     }
 }
 
-/* Terminates the program if p is NULL. */
-void is_malloc_error3(void *p) {
-    if (p == NULL) {
-        perror("Malloc error");
-        exit(EXIT_FAILURE);
-    }
-}
-
 /*
  * met a jour le dernier id disponible avec le dernier utilisé
  */
@@ -62,11 +54,11 @@ char* get_directory_id_path(char *d, uint64_t id) {
     char *a = "/tasks/";
 
     char *ids = malloc(sizeof(uint64_t)*sizeof(char));
-    is_malloc_error3(ids);
+    is_malloc_error(ids);
     sprintf(ids,"%lu",id);
 
     char *id_directory = malloc((strlen(d) + strlen(a) + strlen(ids) + 1) * sizeof(char));
-    is_malloc_error3(id_directory);
+    is_malloc_error(id_directory);
 
     strcpy(id_directory, d);
     strcat(id_directory, a);
@@ -80,14 +72,14 @@ char* get_directory_id_path(char *d, uint64_t id) {
 char* get_directory_path() {
     // get the username (smaller than 200 chars)
     char *username = malloc(200 * sizeof(char));
-    is_malloc_error3(username);
+    is_malloc_error(username);
     getlogin_r(username, 200);
 
     char buf1[] = "/tmp/";
     char buf2[] = "/saturnd";
 
     char *id_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2) + 1) * sizeof(char) + sizeof(uint64_t));
-    is_malloc_error3(id_directory);
+    is_malloc_error(id_directory);
 
     strcpy(id_directory, buf1);
     strcat(id_directory, username);
@@ -101,7 +93,7 @@ char* get_directory_path() {
 char* get_file_path(char *directory, char *file) {
 
     char *name_file = malloc((strlen(directory) + strlen(file) +1) * sizeof(char));
-    is_malloc_error3(name_file);
+    is_malloc_error(name_file);
 
     strcpy(name_file, directory);
     strcat(name_file, file);
@@ -196,7 +188,6 @@ void create_folder_task(struct timing *t, uint32_t length, string **s) {
 
 
 void saturnd_read_reply_c (int fd){
-
     //lire le timing
     struct timing *t = read_timing(fd);
 
@@ -207,5 +198,4 @@ void saturnd_read_reply_c (int fd){
     string **st = read_args(fd, val);
 
     create_folder_task(t,val,st);
-
 }

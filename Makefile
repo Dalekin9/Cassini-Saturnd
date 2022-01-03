@@ -14,10 +14,10 @@ LIBINCLUDE = include
 CFLAGS += -I$(LIBINCLUDE)
 
 # all the object files cassini needs
-CASSINI_OBJFILES = src/cassini.o src/timing-text-io.o src/pipes.o src/write-request.o src/read-reply.o src/print-reply.o
+CASSINI_OBJFILES = src/cassini.o src/timing-text-io.o src/pipes.o src/write-request.o src/read-reply.o src/print-reply.o src/common-read.o
 
 # all the object files saturnd needs
-SATURND_OBJFILES = src/saturnd.o src/read-request.o src/write-reply.o src/pipes.o
+SATURND_OBJFILES = src/saturnd.o src/read-request.o src/write-reply.o src/pipes.o src/common-read.o
 
 
 %.o: %.c $(DEPS)
