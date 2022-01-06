@@ -66,18 +66,22 @@ uint64_t create_new_task(struct timing *t, uint32_t length, string **s) {
     fd = open(file_argv, O_WRONLY);
     int size = 0;
     for (int i = 0; i < length; i++) {
-        size += ((s[i]->length + 1) * sizeof(char));
+        size += sizeof(uint32_t);
+        size += (s[i]->length) * sizeof(char);
     }
-    size += sizeof(char);
     char *buf = malloc(size);
+    sze = 0;
     for (int i = 0; i < length; i++) {
-        if (i == 0) {
-            strcpy(buf, s[i]->s);
-            strcat(buf, " ");
-        } else {
-            strcat(buf, s[i]->s);
-            strcat(buf, " ");
-        }
+        uint32_t ta = htobe32(s[i]->length);
+        printf(" ta normal : %u\n",ta);
+        printf(" ta htobe32 : %u\n",htobe32(ta));
+        printf(" ta be32toh : %u\n",be32toh(ta));
+        printf("mon arg de taille ta : %s\n",s[i]->s);
+        memcpy(buf + sze,&ta,sizeof(uint32_t));
+        sze += sizeof(uint32_t);
+        memcpy(buf + sze,s[i]->s,sizeof(char)*s[i]->length);
+        sze += sizeof(char)*s[i]->length;
+        
     }
     write(fd,buf,size);
     close(fd);
