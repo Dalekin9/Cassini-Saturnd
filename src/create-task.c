@@ -64,23 +64,23 @@ uint64_t create_new_task(struct timing *t, uint32_t length, string **s) {
     char *file_argv = get_file_path(directory_name, "/argv");   
     fd = open(file_argv,O_CREAT,S_IRWXU);
     fd = open(file_argv, O_WRONLY);
-    int size = 0;
+    size_t size = sizeof(uint32_t);
     for (int i = 0; i < length; i++) {
         size += sizeof(uint32_t);
         size += (s[i]->length) * sizeof(char);
     }
     char *buf = malloc(size);
     sze = 0;
+    uint32_t le = htobe32(length);
+    memcpy(buf + sze,&length,sizeof(uint32_t));
+    sze += sizeof(uint32_t);
     for (int i = 0; i < length; i++) {
-        uint32_t ta = htobe32(s[i]->length);
-        printf(" ta normal : %u\n",ta);
-        printf(" ta htobe32 : %u\n",htobe32(ta));
-        printf(" ta be32toh : %u\n",be32toh(ta));
-        printf("mon arg de taille ta : %s\n",s[i]->s);
+        uint32_t ta = (s[i]->length);
         memcpy(buf + sze,&ta,sizeof(uint32_t));
         sze += sizeof(uint32_t);
-        memcpy(buf + sze,s[i]->s,sizeof(char)*s[i]->length);
-        sze += sizeof(char)*s[i]->length;
+        memcpy(buf + sze,s[i]->s,sizeof(char)*(s[i]->length));
+        sze += sizeof(char)*(s[i]->length);
+
         
     }
     write(fd,buf,size);
