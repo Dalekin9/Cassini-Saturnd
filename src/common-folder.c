@@ -31,7 +31,7 @@ char* get_file_path(char *directory, char *file) {
     return name_file;
 }
 
-/* Returns the default path for the tasks directory : "/tmp/<USERNAME>/saturnd/tasks" */
+/* Returns the default path for the tasks directory : "/tmp/<USERNAME>/saturnd" */
 char* get_directory_path() {
     // get the username (smaller than 200 chars)
     char *username = malloc(200 * sizeof(char));
@@ -51,6 +51,28 @@ char* get_directory_path() {
     free(username);
     return id_directory;
 }
+
+/* Returns the default path for the tasks directory : "/tmp/<USERNAME>/saturnd/tasks" */
+char* get_directory_tasks_path() {
+    // get the username (smaller than 200 chars)
+    char *username = malloc(200 * sizeof(char));
+    is_malloc_error(username);
+    getlogin_r(username, 200);
+
+    char buf1[] = "/tmp/";
+    char buf2[] = "/saturnd/tasks";
+
+    char *id_directory = malloc((strlen(username) + strlen(buf1) + strlen(buf2) + 1) * sizeof(char) + sizeof(uint64_t));
+    is_malloc_error(id_directory);
+
+    strcpy(id_directory, buf1);
+    strcat(id_directory, username);
+    strcat(id_directory, buf2);
+
+    free(username);
+    return id_directory;
+}
+
 
 /* Returns the default path for the pipes directory : "/tmp/<USERNAME>/saturnd/tasks/id" */
 char* get_directory_id_path(uint64_t id) {

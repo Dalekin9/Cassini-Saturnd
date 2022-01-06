@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "read-request.h"
 #include "pipes.h"
