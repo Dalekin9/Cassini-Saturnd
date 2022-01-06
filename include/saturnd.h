@@ -9,9 +9,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "read-request.h"
 #include "pipes.h"
 #include "folder.h"
+#include "run_task.h"
 
 #endif //SATURND_H

@@ -9,6 +9,10 @@ int main(int argc, char * argv[]) {
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
 
      while (1) {
+
+          run_tasks();
+          //sleep(5);
+
           int fd_req = open_pipe(request_pipe_name, O_RDONLY);
 
           uint16_t op;
@@ -38,5 +42,6 @@ int main(int argc, char * argv[]) {
                default:
                     break;
           }
+
      }
 }
