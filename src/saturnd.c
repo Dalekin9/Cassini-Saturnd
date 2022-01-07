@@ -150,6 +150,7 @@ int main(int argc, char * argv[]) {
                     read_request_c(fd_req);
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
+                    read_request_rm(fd_req);
                     break;
                case CLIENT_REQUEST_GET_STDERR :
                     read_request_std(fd_req, false);
@@ -158,6 +159,7 @@ int main(int argc, char * argv[]) {
                     read_request_std(fd_req, true);
                     break;
                case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
+                    read_request_t_ec(fd_req);
                     break;
                case CLIENT_REQUEST_LIST_TASKS :
                     break;
