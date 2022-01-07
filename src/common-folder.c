@@ -53,13 +53,13 @@ char* get_directory_path() {
 }
 
 /* Returns the default path for the pipes directory : "/tmp/<USERNAME>/saturnd/tasks/id" */
-char* get_directory_id_path(uint64_t id) {
+char* get_directory_id_path(uint64_t task_id) {
     char *d = get_directory_path();
     char *a = "/tasks/";
 
     char *ids = malloc(sizeof(uint64_t)*sizeof(char));
     is_malloc_error(ids);
-    sprintf(ids,"%lu",id);
+    sprintf(ids,"%lu",task_id);
 
     char *id_directory = malloc((strlen(d) + strlen(a) + strlen(ids) + 1) * sizeof(char));
     is_malloc_error(id_directory);
