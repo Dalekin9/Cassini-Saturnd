@@ -172,7 +172,7 @@ int main(int argc, char * argv[]) {
     
 
     // read the reply
-    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY);
+    pipes_fd[0] = open_pipe(reply_pipe_name, O_RDONLY| O_NONBLOCK);
     read_reply(pipes_fd[0], operation);
     close_pipe(pipes_fd[0]);
 
