@@ -20,6 +20,7 @@
 #include "common-folder.h"
 
 typedef struct {
+  uint64_t id;
   struct timing *t;
   commandline *command;
   bool is_removed;

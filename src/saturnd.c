@@ -111,6 +111,7 @@ s_task **read_all_tasks(uint64_t max_id) {
         char* dir_path = get_directory_id_path(i);
 
         // parse the infos
+        all_tasks[i]->id = i;
         all_tasks[i]->is_removed = find_if_removed(all_tasks[i], dir_path);
         all_tasks[i] = read_task_timing(all_tasks[i],dir_path);
         all_tasks[i] = read_all_arguments(all_tasks[i], dir_path);
@@ -136,6 +137,8 @@ int main(int argc, char * argv[]) {
 
      while (1) {
 
+         printf("start de while \n");
+
           run_tasks(tasks, nb_tasks);
           //sleep(5);
 
@@ -160,6 +163,8 @@ int main(int argc, char * argv[]) {
                case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
                     break;
                case CLIENT_REQUEST_LIST_TASKS :
+                    close_pipe(fd_req);
+                    write_reply_l(tasks, nb_tasks);
                     break;
                case CLIENT_REQUEST_TERMINATE :
                     write_reply_terminate();

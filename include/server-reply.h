@@ -35,7 +35,7 @@ typedef struct {
 */
 
 typedef struct {
-  uint32_t taskid;
+  uint64_t taskid;
   struct timing *t;
   commandline *command;
 } task;
