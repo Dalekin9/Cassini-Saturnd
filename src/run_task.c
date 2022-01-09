@@ -1,3 +1,5 @@
+#include "run_task.h"
+
 //verifie si le timing est correct pour lancer ou non la tache
 bool is_correct_timing(char *path){
     //lecture du timing
@@ -73,17 +75,18 @@ string **get_argv(uint32_t argc, int fd_a){
 
 //convert un tableau de string en un tableau de char (pour la commande exec)
 char **get_char_from_string(string **argv, uint32_t length){
-    char **tab = malloc(sizeof(char) * ((length+1)*8));
+    char **tab = malloc((length +1)* sizeof(char*));
+    is_malloc_error(tab);
+    // add all the strings from argv
     for (int i = 0; i < length; i ++){
-        tab[i] = malloc(sizeof(char) * (argv[i]->length+ 1));
+        tab[i] = malloc(argv[i]->length +1); // +1 for the \0 at the end of the char*
+                                             // (no included in the struct string)
         is_malloc_error(tab[i]);
-        char *s = malloc(sizeof(char) * (argv[i]->length+ 1));
-        is_malloc_error(s);
-        strcpy(s,argv[i]->s);
-        tab[i] = s;
-        free(s);
+        strcpy(tab[i],argv[i]->s);
+        strcpy(tab[i]+argv[i]->length, "\0");
     }
-    tab[length] = malloc(sizeof(char));
+    // add NULL at the last index (for execvp)
+    tab[length] = malloc(sizeof(char*));
     is_malloc_error(tab[length]);
     tab[length] = NULL;
     return tab;
@@ -96,13 +99,13 @@ void run_tasks(){
     while ( (entry = readdir(d)) ){
         if (strcmp(entry->d_name,".") != 0 && strcmp(entry->d_name,"..") != 0) {
             char *path;
-            is_malloc_error(path = malloc( (strlen(dir_path) + strlen(entry->d_name) + 2) * sizeof(char) ));
+            is_malloc_error(path = malloc( (strlen(dir_path) + strlen(entry->d_name) + 2) * sizeof(char)));
             strcpy(path,dir_path);
             strcat(path,"/");
             strcat(path,entry->d_name);
 
             char *remo;
-            is_malloc_error(remo = malloc( (strlen(path) + strlen("/removed") + 1) * sizeof(char) ));   
+            is_malloc_error(remo = malloc( (strlen(path) + strlen("/removed") + 1) * sizeof(char)));
             strcpy(remo,path);
             strcat(remo,"/removed");  
 

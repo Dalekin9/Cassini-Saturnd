@@ -15,8 +15,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "../include/server-reply.h"
-#include "../include/common-folder.h"
+#include "server-reply.h"
+#include "common-folder.h"
 
 void run_tasks();
 
