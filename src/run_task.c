@@ -129,8 +129,8 @@ void run_tasks(){
 
                         string **argv = get_argv(argc,fd_a);   
 
-                        //char **tab = get_char_from_string(argv,argc);
-                        //char *com = tab[0];
+                        char **tab = get_char_from_string(argv,argc);
+                        char *com = tab[0];
 
                         int status;
                         int f = fork();
@@ -153,10 +153,7 @@ void run_tasks(){
                             dup2(fd1,STDOUT_FILENO);
                             dup2(fd2,STDERR_FILENO);
 
-                            char *c = "echo";
-                            char *tab[] = {"echo","coucou",NULL};
-                            execvp(c,tab);
-                            //execvp(com,tab);
+                            execvp(com,tab);
                             kill(getpid(),SIGTERM);
                         } else {
 
