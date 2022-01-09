@@ -10,6 +10,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
+#include <signal.h>
+#include <sys/wait.h>
+
 
 #include "read-request.h"
 #include "pipes.h"

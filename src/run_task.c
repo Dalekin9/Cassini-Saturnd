@@ -1,20 +1,3 @@
-#include <math.h>
-#include <signal.h>
-#include <sys/wait.h>
-#include <dirent.h>
-#include <stdint.h>
-#include <unistd.h> 
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <fcntl.h> 
-#include <stdbool.h>
-#include <stdio.h>
-#include <unistd.h> // open()
-
-#include "../include/server-reply.h"
-#include "../include/common-folder.h"
-
 //verifie si le timing est correct pour lancer ou non la tache
 bool is_correct_timing(char *path){
     //lecture du timing
