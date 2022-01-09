@@ -11,7 +11,7 @@ void print_reply_l(uint32_t nbTasks, task **tasks) {
         timing_string_from_timing(buf_timing, tasks[i]->t);
 
         // print taskid and timing
-        fprintf(stdout, "%u: %s ", tasks[i]->taskid, buf_timing);
+        fprintf(stdout, "%lu: %s ", tasks[i]->taskid, buf_timing);
 
         // print command line args
         for (uint32_t j = 0 ; j < tasks[i]->command->argc; j++){
