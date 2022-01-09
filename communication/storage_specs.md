@@ -15,7 +15,7 @@ Les pipes sont dans le sous-dossier "pipes" (a creer si il n'existe pas).
 Creer un dossier "tasks" au demarrage si il n'existe pas.
 Pour chaque tache, creer un dossier dont le nom est "<TASKID>" et qui contient 5 fichiers :
 - un fichier "timing" qui contient les 3 champs de la structure
-- un fichier "argv" qui contient la commandline (sous forme d'une seule chaine de char)
+- un fichier "argv" qui contient la commandline (meme format de donnees que dans la requete)
 - deux fichiers "stdout" et "stderr" qui contiennent les resultats des derniers runs.
 - un fichier "runs" qui contient la date et la valeur de retour de chaque execution
   On mettra toutes les executions dans ce meme fichier :

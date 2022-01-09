@@ -2,6 +2,7 @@
 #define RUN_TASK_H
 
 #include <math.h>
+#include <time.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <dirent.h>
@@ -17,6 +18,12 @@
 
 #include "server-reply.h"
 #include "common-folder.h"
+
+typedef struct {
+  struct timing *t;
+  commandline *command;
+  bool is_removed;
+} s_task;
 
 void run_tasks();
 
