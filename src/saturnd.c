@@ -1,6 +1,5 @@
 #include "saturnd.h"
 
-
 //recupere les arguments de la tache dans le fichier argv
 string **get_argv(uint32_t argc, int fd_a){
     int nb = 0;
@@ -31,125 +30,78 @@ string **get_argv(uint32_t argc, int fd_a){
         argv[nb] = s;
         nb = nb+1;
     }
-
     return argv;
 }
 
-//convert un tableau de string en un tableau de char (pour la commande exec)
-char **get_char_from_string(string **argv, uint32_t length){
-    char **tab = malloc((length +1)* sizeof(char*));
-    is_malloc_error(tab);
-    // add all the strings from argv
-    for (int i = 0; i < length; i ++){
-        tab[i] = malloc(argv[i]->length +1); // +1 for the \0 at the end of the char*
-                                             // (no included in the struct string)
-        is_malloc_error(tab[i]);
-        strcpy(tab[i],argv[i]->s);
-        strcpy(tab[i]+argv[i]->length, "\0");
+void find_if_removed(s_task* task, char* dir_path) {
+    char *removed_path = get_file_path(dir_path, "/removed");
+
+    int ret = open(removed_path, O_RDONLY);
+    if (ret == -1) {
+        task->is_removed = 0;
+    } else {
+        task->is_removed = 1;
     }
-    // add NULL at the last index (for execvp)
-    tab[length] = malloc(sizeof(char*));
-    is_malloc_error(tab[length]);
-    tab[length] = NULL;
-    return tab;
+    free(removed_path);
+}
+
+void read_all_arguments(s_task *task, char* dir_path) {
+    char tmp[] = "/argv";
+    char *path = get_file_path(dir_path, tmp);
+
+    int fd = open(path, O_RDONLY);
+    uint32_t argc;
+    int res = read(fd, &argc, sizeof(uint32_t));
+    if (res < 0) {
+        perror("Read error"); exit(EXIT_FAILURE);
+    }
+
+    string **argv = get_argv(argc, fd);
+    task->command = malloc(sizeof(commandline));
+    is_malloc_error(task->command);
+
+    task->command->argc = argc;
+    task->command->argv = argv;
+    free(path);
+    close(fd);
 }
 
 s_task **read_all_tasks() {
-    char *dir_path = get_directory_tasks_path();
-    DIR *d = opendir(dir_path);
+    char *path = get_directory_tasks_path();
+    DIR *d = opendir(path);
     struct dirent *entry;
-    while ( (entry = readdir(d)) ){
+    s_task **all_tasks = malloc(1); // initial malloc otherwise realloc doesn't work
+    int nb_tasks = 0;
+    while ((entry = readdir(d))) {
         if (strcmp(entry->d_name,".") != 0 && strcmp(entry->d_name,"..") != 0) {
-            char *path;
-            is_malloc_error(path = malloc( (strlen(dir_path) + strlen(entry->d_name) + 2) * sizeof(char)));
-            strcpy(path,dir_path);
-            strcat(path,"/");
-            strcat(path,entry->d_name);
+            // realloc the s_task** struct and malloc the new s_task*
+            all_tasks = realloc(all_tasks, (nb_tasks+1)*sizeof(s_task*));
+            all_tasks[nb_tasks] = malloc(sizeof(s_task));
+            is_malloc_error(all_tasks[nb_tasks]);
 
-            char *remo;
-            is_malloc_error(remo = malloc( (strlen(path) + strlen("/removed") + 1) * sizeof(char)));
-            strcpy(remo,path);
-            strcat(remo,"/removed");
+            // get the path of the directory (with the id of the task)
+            uint64_t id;
+            sscanf(entry->d_name, "%llu", &id); // get the id as a uint64
+            char* dir_path = get_directory_id_path(id);
 
-            //ouvrir removed pour tester si la tache est supprimee
-            int fd = open(remo,O_RDONLY);
-            if (fd == -1) {
+            // parse the infos
+            find_if_removed(all_tasks[nb_tasks], dir_path);
+            read_all_arguments(all_tasks[nb_tasks], dir_path);
 
-                if (is_correct_timing(path)){
-                    // lire argv et stocker les arguments
-                    char *arg;
-                    is_malloc_error(arg = malloc( strlen(path) + ((strlen("/argv") + 1) * sizeof(char)) ));
-                    strcpy(arg,path);
-                    strcat(arg,"/argv");
-
-                    int fd_a = open(arg,O_RDONLY);
-                    uint32_t argc;
-                    int res = read(fd_a, &argc, sizeof(uint32_t));
-                    if (res <= 0) {
-                        perror("Erreur de read");
-                    } else {
-
-                        string **argv = get_argv(argc,fd_a);
-
-                        char **tab = get_char_from_string(argv,argc);
-                        char *com = tab[0];
-
-                        int status;
-                        int f = fork();
-                        if (f == -1) {
-                            perror("Erreur de fork");
-                            exit(EXIT_FAILURE);
-                        } else if (f == 0) {
-                            char *out;
-                            is_malloc_error(out = malloc( strlen(path) + ((strlen("/stdout") + 1) * sizeof(char)) ));
-                            strcpy(out,path);
-                            strcat(out,"/stdout");
-
-                            char *err;
-                            is_malloc_error(err = malloc( strlen(path) + ((strlen("/stderr") + 1) * sizeof(char)) ));
-                            strcpy(err,path);
-                            strcat(err,"/stderr");
-
-                            int fd1 = open(out,O_CREAT | O_WRONLY, S_IRWXU);
-                            int fd2 = open(err,O_CREAT | O_WRONLY, S_IRWXU);
-                            dup2(fd1,STDOUT_FILENO);
-                            dup2(fd2,STDERR_FILENO);
-
-                            execvp(com,tab);
-                            kill(getpid(),SIGTERM);
-                        } else {
-
-                            waitpid(f,&status,0);
-                            if (WIFEXITED(status)) {
-                                //ecrire dans le fichiers run la date
-                                for (int i = 0; i < argc; i++){
-                                    free(argv[i]->s);
-                                    free(argv[i]);
-                                    //free(tab[i]);
-                                }
-
-                                free(argv);
-                                //free(tab);
-                                free(arg);
-                                close(fd_a);
-                            } else {
-                                perror("Le fils ne finit pas bien");
-                                exit(EXIT_FAILURE);
-                            }
-                        }
-                    }
-                }
-            }
+            free(dir_path);
+            nb_tasks += 1;
         }
     }
     closedir(d);
+    free(path);
+    return all_tasks;
 }
 
 int main(int argc, char * argv[]) {
+     create_files(); // create the folders if needed
+     create_pipes(); // create the pipes if needed
 
-     create_files();
-     create_pipes();
-     read_all_tasks();
+     s_task** tasks = read_all_tasks(); // read all the tasks from disk
 
      char *pipes_directory = write_default_pipes_directory();
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
