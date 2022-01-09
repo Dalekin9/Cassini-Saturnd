@@ -65,13 +65,12 @@ void read_all_arguments(s_task *task, char* dir_path) {
     close(fd);
 }
 
-// TODO ICI
 uint64_t read_max_id(char *dir_path) {
     char *filename = "/last_taskid";
     char *tmp = get_directory_path();
     fprintf(stdout, "%s\n", tmp);
-    char *path = malloc(sizeof(filename) + sizeof(tmp) + 2);
-    strcpy(path, tmp); // les strcpy et strcat font de la merde
+    char *path = malloc((strlen(filename) + strlen(tmp) + 2) * sizeof(char));
+    strcpy(path, tmp);
     strcat(path, filename);
     fprintf(stdout, "%s\n", path);
     free(tmp);
@@ -91,6 +90,7 @@ uint64_t read_max_id(char *dir_path) {
 uint64_t read_all_tasks(s_task** all_tasks) {
     char *path = get_directory_tasks_path();
     uint64_t max_id = read_max_id(path);
+    printf("max id : %lu\n",max_id);
 
     all_tasks = malloc((max_id + 1) * sizeof(s_task));
     for (uint64_t i = 0; i < max_id + 1; i++) {
