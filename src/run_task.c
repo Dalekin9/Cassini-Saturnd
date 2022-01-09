@@ -1,5 +1,24 @@
 #include "run_task.h"
 
+//convert un tableau de string en un tableau de char (pour la commande exec)
+char **get_char_from_string(string **argv, uint32_t length){
+    char **tab = malloc((length + 1)* sizeof(char*));
+    is_malloc_error(tab);
+    // add all the strings from argv
+    for (int i = 0; i < length; i ++){
+        tab[i] = malloc(argv[i]->length +1); // +1 for the \0 at the end of the char*
+                                             // (no included in the struct string)
+        is_malloc_error(tab[i]);
+        strcpy(tab[i],argv[i]->s);
+        strcpy(tab[i]+argv[i]->length, "\0");
+    }
+    // add NULL at the last index (for execvp)
+    tab[length] = malloc(sizeof(char*));
+    is_malloc_error(tab[length]);
+    tab[length] = NULL;
+    return tab;
+}
+
 /* Checks if the current time corresponds with the timing t */
 bool is_correct_timing(struct timing* t){
     // get current time
@@ -12,9 +31,9 @@ bool is_correct_timing(struct timing* t){
     int m = local_t->tm_min;
 
     // masks
-    uint8_t days_m = days<<day;
-    uint32_t hours_m = hours<<h;
-    uint64_t minutes_m = minutes<<m;
+    uint8_t days_m = t->daysofweek << day;
+    uint32_t hours_m = t->hours << h;
+    uint64_t minutes_m = t->minutes << m;
 
     // compare
     if (((t->daysofweek && days_m) == 1)
@@ -50,15 +69,17 @@ void move_stdout_stderr(int id) {
 void run_tasks(s_task **tasks, int nb_tasks){
     for (int i = 0; i < nb_tasks; i++) {
         if(!(tasks[i]->is_removed)) {
-            if (is_correct_timing(nb_tasks[i]->t)) {
+            if (is_correct_timing(tasks[i]->t)) {
                 int status; // to store the return status of the child
-                int64 time_of_execution = time(NULL);
+                int64_t time_of_execution = time(NULL);
                 int f = fork();
                 if (f == -1) {
                     perror("Fork error");
                     exit(EXIT_FAILURE);
                 } else if (f == 0) { // child that will execute the task
-                    move_stdout_stderr();
+                    move_stdout_stderr(i);
+                    char **tab = get_char_from_string(tasks[i]->command->argv, tasks[i]->command->argc);
+                    char *com = tab[0];
                     execvp(com,tab);
                 } else {
                     waitpid(f, &status, 0);
