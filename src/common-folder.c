@@ -19,7 +19,7 @@ void is_mkdir_error(int res){
     }
 }
 
-/* Returns the default path for the file : "/tmp/<USERNAME>/tasks/id/..." = directory/file*/
+/* Returns the default path for the file : "/tmp/<USERNAME>/tasks/id/..." = directory/file */
 char* get_file_path(char *directory, char *file) {
 
     char *name_file = malloc((strlen(directory) + strlen(file) +1) * sizeof(char));
