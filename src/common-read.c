@@ -115,11 +115,11 @@ task *parse_one_task(int fd) {
 
 /* Reads nbTasks tasks from fd.
 Returns the task** that contains all the info. */
-task **parse_tasks(int fd, uint16_t nbTasks) {
+task **parse_tasks(int fd, uint32_t nbTasks) {
     task **tasks = malloc(nbTasks * sizeof(task));
     is_malloc_error(tasks);
 
-    for(uint16_t i = 0; i < nbTasks; i++){
+    for(uint32_t i = 0; i < nbTasks; i++){
         tasks[i] = parse_one_task(fd);
     }
     return tasks;

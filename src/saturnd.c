@@ -15,13 +15,14 @@ string **get_argv(uint32_t argc, int fd_a){
         string *s = malloc(sizeof(string));
         is_malloc_error(s);
         s->length = t;
-        s->s = malloc(sizeof(char) * t);
+        s->s = malloc(sizeof(BYTE) * (t+1));
         is_malloc_error(s->s);
-        res = read(fd_a, s->s, (sizeof(char) * t));
+        res = read(fd_a, s->s, (sizeof(BYTE) * t));
         if (res <= 0){
             perror("Error de read n2");
             exit(EXIT_FAILURE);
         }
+        s->s[t] = '\0';
         argv = realloc(argv,(nb+1)*sizeof(string));
 
         argv[nb] = malloc(sizeof(string));
@@ -81,11 +82,9 @@ s_task *read_task_timing(s_task *task, char* dir_path) {
 uint64_t read_max_id(char *dir_path) {
     char *filename = "/last_taskid";
     char *tmp = get_directory_path();
-    fprintf(stdout, "%s\n", tmp);
     char *path = malloc((strlen(filename) + strlen(tmp) + 2) * sizeof(char));
     strcpy(path, tmp);
     strcat(path, filename);
-    fprintf(stdout, "%s\n", path);
     free(tmp);
 
     int fd = open(path, O_RDONLY);
@@ -127,7 +126,6 @@ int main(int argc, char * argv[]) {
 
      char *path = get_directory_tasks_path();
      uint64_t max_id = read_max_id(path);
-     printf("max id : %lu\n",max_id);
      s_task** tasks = read_all_tasks(max_id);
      uint64_t nb_tasks = max_id + 1;
 
@@ -136,8 +134,6 @@ int main(int argc, char * argv[]) {
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
 
      while (1) {
-
-         printf("start de while \n");
 
           run_tasks(tasks, nb_tasks);
           //sleep(5);
@@ -151,6 +147,8 @@ int main(int argc, char * argv[]) {
           switch (op){
                case CLIENT_REQUEST_CREATE_TASK :
                     read_request_c(fd_req);
+                    tasks = read_all_tasks(nb_tasks);
+                    nb_tasks = nb_tasks + 1;
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
                     break;

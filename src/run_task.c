@@ -127,7 +127,6 @@ void run_one_task(s_task *task, uint64_t taskid) {
 
 void run_tasks(s_task **tasks, uint64_t nb_tasks){
     for (int i = 0; i < nb_tasks; i++) {
-        fprintf(stdout, "%d\n", i);
         
         if(!(tasks[i]->is_removed)) {
             if (is_correct_timing(tasks[i]->t)) {
