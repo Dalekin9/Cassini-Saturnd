@@ -15,13 +15,14 @@ string **get_argv(uint32_t argc, int fd_a){
         string *s = malloc(sizeof(string));
         is_malloc_error(s);
         s->length = t;
-        s->s = malloc(sizeof(char) * t);
+        s->s = malloc(sizeof(BYTE) * (t+1));
         is_malloc_error(s->s);
-        res = read(fd_a, s->s, (sizeof(char) * t));
+        res = read(fd_a, s->s, t);
         if (res <= 0){
             perror("Error de read n2");
             exit(EXIT_FAILURE);
         }
+        s->s[t] = '\0';
         argv = realloc(argv,(nb+1)*sizeof(string));
 
         argv[nb] = malloc(sizeof(string));
@@ -148,6 +149,8 @@ int main(int argc, char * argv[]) {
           switch (op){
                case CLIENT_REQUEST_CREATE_TASK :
                     read_request_c(fd_req);
+                    tasks = read_all_tasks(nb_tasks);
+                    nb_tasks = nb_tasks + 1;
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
                     break;

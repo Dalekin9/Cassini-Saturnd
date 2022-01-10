@@ -13,6 +13,7 @@ char **get_char_from_string(string **argv, uint32_t length){
                                              // (no included in the struct string)
         is_malloc_error(tab[i]);
         strcpy(tab[i],argv[i]->s);
+        strcat(tab[i]+argv[i]->length, "\0");
     }
     // add NULL at the last index (for execvp)
     tab[length] = malloc(sizeof(char*));
@@ -94,7 +95,7 @@ void write_run_info(int64_t time, uint16_t exitcode, uint64_t taskid) {
         read(fd, &nb_runs, sizeof(uint32_t));
         nb_runs += 1;
     }
-     write(fd, &nb_runs, sizeof(uint32_t));
+    write(fd, &nb_runs, sizeof(uint32_t));
     close(fd);
 
     free(path_dir);
@@ -130,7 +131,6 @@ void run_one_task(s_task *task, uint64_t taskid) {
 
 void run_tasks(s_task **tasks, uint64_t nb_tasks){
     for (int i = 0; i < nb_tasks; i++) {
-        fprintf(stdout, "id task %d\n", i);
         
         if(!(tasks[i]->is_removed)) {
             if (is_correct_timing(tasks[i]->t)) {

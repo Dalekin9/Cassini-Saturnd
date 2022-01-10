@@ -91,5 +91,6 @@ char* get_directory_id_path(uint64_t id) {
     strcat(id_directory, ids);
 
     free(ids);
+    free(d);
     return id_directory;
 }
