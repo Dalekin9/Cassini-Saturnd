@@ -5,12 +5,14 @@ char **get_char_from_string(string **argv, uint32_t length){
     char **tab = malloc((length + 1)* sizeof(char*));
     is_malloc_error(tab);
     // add all the strings from argv
-    for (int i = 0; i < length; i ++){
-        tab[i] = malloc(argv[i]->length +1); // +1 for the \0 at the end of the char*
+    for (uint32_t i = 0; i < length; i ++){
+        uint32_t t = argv[i]->length + 1;
+
+        printf("taille de t : %u\n",t);
+        tab[i] = malloc(sizeof(char) * t); // +1 for the \0 at the end of the char*
                                              // (no included in the struct string)
         is_malloc_error(tab[i]);
         strcpy(tab[i],argv[i]->s);
-        strcpy(tab[i]+argv[i]->length, "\0");
     }
     // add NULL at the last index (for execvp)
     tab[length] = malloc(sizeof(char*));
@@ -31,14 +33,14 @@ bool is_correct_timing(struct timing* t){
     int m = local_t->tm_min;
 
     // masks
-    uint8_t days_m = t->daysofweek << day;
-    uint32_t hours_m = t->hours << h;
-    uint64_t minutes_m = t->minutes << m;
+    uint8_t days_m = 1<<day;
+    uint32_t hours_m = 1<<h;
+    uint64_t minutes_m = 1<<m;
 
     // compare
-    if (((t->daysofweek && days_m) == 1)
-     && ((t->hours && hours_m) == 1)
-     && ((t->minutes && minutes_m) == 1)) {
+    if (( days_m == (t->daysofweek&days_m)) 
+     && (hours_m == (t->hours&hours_m) )
+     && (minutes_m) == (t->minutes&minutes_m) ) {
         return true;
     } else {
         return false;
@@ -106,9 +108,10 @@ void run_one_task(s_task *task, uint64_t taskid) {
         perror("Fork error");
         exit(EXIT_FAILURE);
     } else if (f == 0) { // fork and execute the task
-        move_stdout_stderr(taskid);
         char **tab = get_char_from_string(task->command->argv, task->command->argc);
         char *com = tab[0];
+        move_stdout_stderr(taskid);
+
         execvp(com,tab);
     } else { // wait until task is finished to write execution time + return value
         int status; // to store the return status of the child
@@ -127,7 +130,7 @@ void run_one_task(s_task *task, uint64_t taskid) {
 
 void run_tasks(s_task **tasks, uint64_t nb_tasks){
     for (int i = 0; i < nb_tasks; i++) {
-        fprintf(stdout, "%d\n", i);
+        fprintf(stdout, "id task %d\n", i);
         
         if(!(tasks[i]->is_removed)) {
             if (is_correct_timing(tasks[i]->t)) {
