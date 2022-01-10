@@ -147,7 +147,6 @@ int main(int argc, char * argv[]) {
 
           switch (op){
                case CLIENT_REQUEST_CREATE_TASK :
-               printf("debut create\n");
                     read_request_c(fd_req);
                     for (uint32_t i = 0; i < nb_tasks; i++) {
                         for (uint32_t j = 0; j < tasks[i]->command->argc; j++){
