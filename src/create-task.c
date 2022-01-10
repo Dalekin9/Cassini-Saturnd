@@ -80,7 +80,6 @@ uint64_t create_new_task(struct timing *t, uint32_t length, string **s) {
         sze += sizeof(uint32_t);
         memcpy(buf + sze,s[i]->s,sizeof(char)*(s[i]->length));
         sze += sizeof(char)*(s[i]->length);
-        
     }
     write(fd,buf,size);
     close(fd);

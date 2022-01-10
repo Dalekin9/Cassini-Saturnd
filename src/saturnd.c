@@ -17,7 +17,7 @@ string **get_argv(uint32_t argc, int fd_a){
         s->length = t;
         s->s = malloc(sizeof(BYTE) * (t+1));
         is_malloc_error(s->s);
-        res = read(fd_a, s->s, t);
+        res = read(fd_a, s->s, (sizeof(BYTE) * t));
         if (res <= 0){
             perror("Error de read n2");
             exit(EXIT_FAILURE);
@@ -81,11 +81,9 @@ s_task *read_task_timing(s_task *task, char* dir_path) {
 uint64_t read_max_id(char *dir_path) {
     char *filename = "/last_taskid";
     char *tmp = get_directory_path();
-    fprintf(stdout, "%s\n", tmp);
     char *path = malloc((strlen(filename) + strlen(tmp) + 2) * sizeof(char));
     strcpy(path, tmp);
     strcat(path, filename);
-    fprintf(stdout, "%s\n", path);
     free(tmp);
 
     int fd = open(path, O_RDONLY);
@@ -111,6 +109,7 @@ s_task **read_all_tasks(uint64_t max_id) {
         char* dir_path = get_directory_id_path(i);
 
         // parse the infos
+        all_tasks[i]->id = i;
         all_tasks[i]->is_removed = find_if_removed(all_tasks[i], dir_path);
         all_tasks[i] = read_task_timing(all_tasks[i],dir_path);
         all_tasks[i] = read_all_arguments(all_tasks[i], dir_path);
@@ -126,7 +125,6 @@ int main(int argc, char * argv[]) {
 
      char *path = get_directory_tasks_path();
      uint64_t max_id = read_max_id(path);
-     printf("max id : %lu\n",max_id);
      s_task** tasks = read_all_tasks(max_id);
      uint64_t nb_tasks = max_id + 1;
 
@@ -164,7 +162,7 @@ int main(int argc, char * argv[]) {
                     free(tasks);
                     tasks = read_all_tasks(nb_tasks);
                     nb_tasks = nb_tasks + 1;
-                    printf("fin de create\n");
+
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
                     break;
@@ -177,6 +175,8 @@ int main(int argc, char * argv[]) {
                case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
                     break;
                case CLIENT_REQUEST_LIST_TASKS :
+                    close_pipe(fd_req);
+                    write_reply_l(tasks, nb_tasks);
                     break;
                case CLIENT_REQUEST_TERMINATE :
                     write_reply_terminate();
