@@ -56,12 +56,11 @@ s_task *read_all_arguments(s_task *task, char* dir_path) {
         perror("Read error"); exit(EXIT_FAILURE);
     }
 
-    string **argv = get_argv(argc, fd);
     task->command = malloc(sizeof(commandline));
     is_malloc_error(task->command);
 
     task->command->argc = argc;
-    task->command->argv = argv;
+    task->command->argv = get_argv(argc, fd);
     free(path);
     close(fd);
     return task;
@@ -134,6 +133,8 @@ int main(int argc, char * argv[]) {
 
      char *pipes_directory = write_default_pipes_directory();
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
+     free(path);
+     free(pipes_directory);
 
      while (1) {
 
@@ -148,9 +149,22 @@ int main(int argc, char * argv[]) {
 
           switch (op){
                case CLIENT_REQUEST_CREATE_TASK :
+               printf("debut create\n");
                     read_request_c(fd_req);
+                    for (uint32_t i = 0; i < nb_tasks; i++) {
+                        for (uint32_t j = 0; j < tasks[i]->command->argc; j++){
+                            free(tasks[i]->command->argv[j]->s);
+                            free(tasks[i]->command->argv[j]);
+                        }
+                        free(tasks[i]->command->argv);
+                        free(tasks[i]->command);
+                        free(tasks[i]->t);
+                        free(tasks[i]);
+                    }
+                    free(tasks);
                     tasks = read_all_tasks(nb_tasks);
                     nb_tasks = nb_tasks + 1;
+                    printf("fin de create\n");
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
                     break;

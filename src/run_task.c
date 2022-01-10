@@ -8,12 +8,11 @@ char **get_char_from_string(string **argv, uint32_t length){
     for (uint32_t i = 0; i < length; i ++){
         uint32_t t = argv[i]->length + 1;
 
-        printf("taille de t : %u\n",t);
         tab[i] = malloc(sizeof(char) * t); // +1 for the \0 at the end of the char*
                                              // (no included in the struct string)
         is_malloc_error(tab[i]);
         strcpy(tab[i],argv[i]->s);
-        strcat(tab[i]+argv[i]->length, "\0");
+        strcpy(tab[i]+argv[i]->length, "\0");
     }
     // add NULL at the last index (for execvp)
     tab[length] = malloc(sizeof(char*));
