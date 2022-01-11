@@ -113,6 +113,7 @@ void create_pipes() {
     free(pipes_directory);
 }
 
+/* Opens the reply pipe for saturnd with O_WRONLY permissions */
 int open_reply_pipe_saturnd() {
      char *pipes_directory = write_default_pipes_directory();
      char *reply_pipe_name = get_pipe_name(pipes_directory, "saturnd-reply-pipe");

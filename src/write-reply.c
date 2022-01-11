@@ -1,7 +1,8 @@
 #include "write-reply.h"
 
-/* Writes a reply for operations that only returns a repcode
-   with it's corresponding error if it is err*/
+/* Writes a reply in the fd.
+If ok, then only writes SERVER_REPLY_OK.
+If not ok, then write both SERVER_REPLY_ERROR and the errcode */
 void write_reply_code(int fd, bool ok, uint16_t errcode){
     if(ok) {
         uint16_t rep = be16toh(SERVER_REPLY_OK);
@@ -19,6 +20,9 @@ void write_reply_code(int fd, bool ok, uint16_t errcode){
     }
 }
 
+/* First creates a new task on the disk.
+Then writes a reply for the CREATE request in the reply pipe.
+*/
 void write_reply_c (struct timing *t, uint32_t argc, string **argv){
     // create the task
     uint64_t taskid = create_new_task(t, argc, argv);
@@ -39,6 +43,7 @@ void write_reply_c (struct timing *t, uint32_t argc, string **argv){
     close_pipe(fd);
 }
 
+/* Returns the size of the file of descriptor fd. */
 uint32_t get_size_file(int fd) {
     struct stat st;
     fstat(fd, &st);
@@ -46,6 +51,8 @@ uint32_t get_size_file(int fd) {
     return htobe32(size - 1); // need to remove the last \0
 }
 
+/* Writes a reply in the pipe fd for the STDOUT or STDERR request when
+ there is the error errcode. */
 void write_reply_std_error(uint16_t errcode, int fd) {
     BYTE buf[sizeof(uint16_t) * 2];
     uint16_t code = htobe16(SERVER_REPLY_ERROR);
@@ -56,7 +63,14 @@ void write_reply_std_error(uint16_t errcode, int fd) {
     write(fd, buf, sizeof(uint16_t) *2);
 }
 
-void write_reply_std(uint64_t taskid, int is_stdout) {
+/* Writes the reply on the reply pipe.
+ If is_stdout : for STDOUT, otherwise, for STDERR
+ First the function will try to open the "/stdout" (or "/stderr")
+ file in the folder for taskid.
+ If it can't open (the file doesn't exist) then the task was never
+ run and the reply is an error.
+ Otherwise, the content of the file is written (+ the OK code) */
+void write_reply_std(uint64_t taskid, bool is_stdout) {
     int fd = open_reply_pipe_saturnd();
 
     char *folder_path = get_directory_id_path(taskid);
@@ -102,6 +116,8 @@ void write_reply_std(uint64_t taskid, int is_stdout) {
     close_pipe(fd);
 }
 
+/* Writes the reply "OK" to the reply pipe
+for the request TERMINATE */
 void write_reply_terminate() {
     uint16_t code = htobe16(SERVER_REPLY_OK);
     int fd = open_reply_pipe_saturnd();
@@ -109,6 +125,10 @@ void write_reply_terminate() {
 }
 
 
+/* Writes the reply for request LIST to the reply pipe.
+- tasks : the array of all the tasks
+- nb_tasks : the length of the array
+All the tasks are returned, even the ones who were removed. */
 void write_reply_l(s_task **tasks, uint32_t nb_tasks){
     uint16_t code = htobe16(SERVER_REPLY_OK);
     int fd = open_reply_pipe_saturnd();
@@ -172,6 +192,12 @@ void write_reply_l(s_task **tasks, uint32_t nb_tasks){
     
 }
 
+/* Writes the reply for the TIME_AND_EXITCODES request to the reply pipe.
+- fd : the fd of the reply pipe
+- errcode : if this is an error code, then writes an error response with that code.
+Otherwise, writes the normal response with :
+- runs : the array of runs (contains a timestamp and an error code for each run)
+- nb_runs : the length of the array */
 void write_times_exitcodes(int fd, run **runs, uint32_t nb_runs, uint16_t errcode){
     if(errcode == SERVER_REPLY_OK){
         // create the buffer for the reply
@@ -211,6 +237,9 @@ void write_times_exitcodes(int fd, run **runs, uint32_t nb_runs, uint16_t errcod
     }
 }
 
+/* First gets all the infos about runs for the task number taskid.
+Then writes the reply for the TIME_EXIT_CODES request to the reply
+pipe. */
 void write_reply_t_ec(uint64_t taskid){
     int fd = open_reply_pipe_saturnd();
     char* folder_path = get_directory_id_path(taskid);
@@ -270,6 +299,9 @@ void write_reply_t_ec(uint64_t taskid){
     // other helper methods when they finished writing
 }
 
+/* First creates a "removed" file in the folder for taskid
+(to show that the task is removed).
+Then writes the reply to the reply pipe. */
 void write_reply_rm(uint64_t taskid){
     int fd = open_reply_pipe_saturnd();
     char *folder_path = get_directory_id_path(taskid);

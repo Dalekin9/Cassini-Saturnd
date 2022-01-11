@@ -1,7 +1,8 @@
 #include "folder.h"
 
 
-//creer les dossiers intermediaires si necessaire : tmp, user, saturnd, tasks et pipes
+/* Creates the following folders hierarchies if they don't exist :
+"/tmp/<USERNAME>/saturnd/tasks" and "/tmp/<USERNAME>/saturnd/tasks" */
 void create_intermediaire_folders(){
     char *username = malloc(200 * sizeof(char));
     is_malloc_error(username);
@@ -46,12 +47,12 @@ void create_intermediaire_folders(){
     free(name2);
 }
 
-//creer les dossiers/fichiers au demmarage si necessaire
+/* Creates the folder hierarchy at startup if necessary. */
 void create_files(){
 
     create_intermediaire_folders();
 
-    //fichier last_taskid qui contient -1
+    // last_taskid file contains -1 (if it didn't exist, then no tasks existed either)
     char *dir = get_directory_path();
     char *last_task = get_file_path(dir,"/last_taskid");
     int fp = open(last_task, O_RDWR);

@@ -1,6 +1,8 @@
 #include "run_task.h"
 
-//convert un tableau de string en un tableau de char (pour la commande exec)
+/* Converts a string** into a char** with the last
+element being NULL.
+This char** will be used by execvp later. */
 char **get_char_from_string(string **argv, uint32_t length){
     char **tab = malloc((length + 1)* sizeof(char*));
     is_malloc_error(tab);
@@ -47,8 +49,8 @@ bool is_correct_timing(struct timing* t){
     }
 }
 
-/* For the child process that will execute a task : duplicate stdout and stderr to the
-   files at saturnd/tasks/<id>/stdout (resp stderr) */
+/* For the child process that will execute a task : duplicate stdout
+and stderr to the files at saturnd/tasks/<id>/stdout (resp stderr) */
 void move_stdout_stderr(int id) {
     char *dir_path = get_directory_id_path(id);
 
@@ -68,6 +70,9 @@ void move_stdout_stderr(int id) {
     free(err);
 }
 
+/* Writes the timestamp time and the return value exitcode to the
+end of the file "runs" in the folder for the task number taskid.
+Also adds one to the number in the "nb_runs" file. */
 void write_run_info(int64_t time, uint16_t exitcode, uint64_t taskid) {
     // append the time and exitcodes
     char *path_dir = get_directory_id_path(taskid);
@@ -117,6 +122,11 @@ void write_run_info(int64_t time, uint16_t exitcode, uint64_t taskid) {
     free(path_nb);
 }
 
+/* Runs the task number taskid. All the arguments, timing, ...
+are stored in the s_task pointer.
+Then the process waits for the termination of the task
+and write the timestamp of execution and the return value to
+the file "runs" (and adds 1 to the file "nb_runs"). */
 void run_one_task(s_task *task, uint64_t taskid) {
     int f = fork();
     if (f == -1) {
@@ -146,6 +156,9 @@ void run_one_task(s_task *task, uint64_t taskid) {
     }
 }
 
+/* Looks through all the tasks and launches the ones that
+are not removed, and whose timestamps correspond with the
+current time. */
 void run_tasks(s_task **tasks, uint64_t nb_tasks){
     for (int i = 0; i < nb_tasks; i++) {
 

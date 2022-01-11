@@ -1,6 +1,8 @@
 #include "saturnd.h"
 
-//recupere les arguments de la tache dans le fichier argv
+/* Returns an array of all the arguments for the task.
+The arguments are read from the file opened with the fd fd_a.
+There are argc arguments to read. */
 string **get_argv(uint32_t argc, int fd_a){
     int nb = 0;
     string **argv = malloc(nb * sizeof(string));
@@ -12,7 +14,7 @@ string **get_argv(uint32_t argc, int fd_a){
         uint32_t t;
         int res = read(fd_a, &t, sizeof(uint32_t));
         if (res <= 0){
-            perror("Error de read n1");
+            perror("Read error");
             exit(EXIT_FAILURE);
         }
 
@@ -21,7 +23,7 @@ string **get_argv(uint32_t argc, int fd_a){
         is_malloc_error(argv[nb]->s);
         res = read(fd_a, argv[nb]->s, (sizeof(BYTE) * t));
         if (res <= 0){
-            perror("Error de read n2");
+            perror("Read error");
             exit(EXIT_FAILURE);
         }
         argv[nb]->s[t] = '\0';
@@ -30,7 +32,9 @@ string **get_argv(uint32_t argc, int fd_a){
     return argv;
 }
 
-bool find_if_removed(s_task* task, char* dir_path) {
+/* Looks into the directory dir_path to see if the "removed"
+ file is present. If so, returns true, otherwise, false. */
+bool find_if_removed(char* dir_path) {
     char *removed_path = get_file_path(dir_path, "/removed");
 
     int ret = open(removed_path, O_RDONLY);
@@ -40,13 +44,15 @@ bool find_if_removed(s_task* task, char* dir_path) {
     } else {
         return true;
     }
+    close(ret);
 }
 
+/* Reads all the arguments of a task whose folder is dir_path.
+Returns a s_task with all fields completed. */
 s_task *read_all_arguments(s_task *task, char* dir_path) {
-    char tmp[] = "/argv";
-    char *path = get_file_path(dir_path, tmp);
-
+    char *path = get_file_path(dir_path, "/argv");
     int fd = open(path, O_RDONLY);
+
     uint32_t argc;
     int res = read(fd, &argc, sizeof(uint32_t));
     if (res < 0) {
@@ -63,9 +69,10 @@ s_task *read_all_arguments(s_task *task, char* dir_path) {
     return task;
 }
 
+/* Reads the timing for the task in the folder dir_path and returns
+the s_task with the timing field completed. */
 s_task *read_task_timing(s_task *task, char* dir_path) {
-    char tmp[] = "/timing";
-    char *path = get_file_path(dir_path, tmp);
+    char *path = get_file_path(dir_path, "/timing");
 
     int fd = open(path, O_RDONLY);
     task->t = read_timing(fd);
@@ -75,6 +82,8 @@ s_task *read_task_timing(s_task *task, char* dir_path) {
     return task;
 }
 
+/* Reads the max_id that was already attributed in the saturnd/tasks/last_taskid
+file and returns it. */
 uint64_t read_max_id(char *dir_path) {
     char *filename = "/last_taskid";
     char *tmp = get_directory_path();
@@ -95,8 +104,8 @@ uint64_t read_max_id(char *dir_path) {
     return max_id;
 }
 
+/* Reads all the tasks from the disk and returns them in an array. */
 s_task **read_all_tasks(uint64_t max_id) {
-    
     s_task **all_tasks = malloc((max_id + 1) * sizeof(s_task));
     for (uint64_t i = 0; i < max_id + 1; i++) {
         all_tasks[i] = malloc(sizeof(s_task));
@@ -107,8 +116,8 @@ s_task **read_all_tasks(uint64_t max_id) {
 
         // parse the infos
         all_tasks[i]->id = i;
-        all_tasks[i]->is_removed = find_if_removed(all_tasks[i], dir_path);
-        all_tasks[i] = read_task_timing(all_tasks[i],dir_path);
+        all_tasks[i]->is_removed = find_if_removed(dir_path);
+        all_tasks[i] = read_task_timing(all_tasks[i], dir_path);
         all_tasks[i] = read_all_arguments(all_tasks[i], dir_path);
 
         free(dir_path);
@@ -116,6 +125,9 @@ s_task **read_all_tasks(uint64_t max_id) {
     return all_tasks;
 }
 
+/* The main function of saturnd : it waits for requests from
+cassini, writes the replies, and is also in charge of launching
+the tasks every second. */
 int main(int argc, char * argv[]) {
      create_files(); // create the folders if needed
      create_pipes(); // create the pipes if needed
@@ -164,10 +176,10 @@ int main(int argc, char * argv[]) {
                     nb_tasks = nb_tasks + 1;
                     break;
                 case CLIENT_REQUEST_REMOVE_TASK :
-                    uint64_t task_ID = read_taskID(fd_req);
+                    {uint64_t task_ID = read_taskID(fd_req);
                     read_request_rm(fd_req, task_ID);
                     tasks[task_ID]->is_removed = true;
-                    break;
+                    break;} // needs {} because we are initializing a value
                 case CLIENT_REQUEST_GET_STDERR :
                     read_request_std(fd_req, false);
                     break;
