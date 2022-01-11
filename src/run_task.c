@@ -94,6 +94,8 @@ void write_run_info(int64_t time, uint16_t exitcode, uint64_t taskid) {
         read(fd, &nb_runs, sizeof(uint32_t));
         nb_runs += 1;
     }
+    nb_runs = htobe32(nb_runs);
+    printf("%u\n",nb_runs);
     write(fd, &nb_runs, sizeof(uint32_t));
     close(fd);
 

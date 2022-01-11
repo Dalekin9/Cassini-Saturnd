@@ -124,3 +124,12 @@ task **parse_tasks(int fd, uint32_t nbTasks) {
     }
     return tasks;
 }
+
+/* Reads a task_ID from fd.
+Returns it as a uint64_t*/
+uint64_t read_taskID(int fd){
+    uint64_t taskid;
+    is_read_error(read(fd, &taskid, sizeof(uint64_t)));
+    taskid = be64toh(taskid);
+    return taskid;
+}

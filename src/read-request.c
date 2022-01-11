@@ -24,3 +24,15 @@ void read_request_std(int fd, int is_stdout) {
     // write the reply
     write_reply_std(taskid, is_stdout);
 }
+
+/*  Reads the request for remove then launches the methods to remove a task and write the reply.  */
+void read_request_rm(int fd, uint64_t task_id){
+    write_reply_rm(task_id);
+}
+
+/* Reads the request for Time_Exit_Codes and launches the method to reply */
+void read_request_t_ec(int fd){
+    uint64_t task_id = read_taskID(fd);
+    write_reply_t_ec(task_id);
+}
+

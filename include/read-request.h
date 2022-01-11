@@ -12,7 +12,7 @@
 
 void read_request_c (int fd);
 void read_request_std(int fd, int is_stdout);
-
-
+void read_request_rm(int fd, uint64_t task_id);
+void read_request_t_ec(int fd);
 
 #endif //SATURND_READ_H

@@ -164,7 +164,12 @@ int main(int argc, char * argv[]) {
 
                     break;
                case CLIENT_REQUEST_REMOVE_TASK :
+               {
+                    uint64_t task_ID = read_taskID(fd_req);
+                    read_request_rm(fd_req, task_ID);
+                    tasks[task_ID]->is_removed = true;
                     break;
+               }
                case CLIENT_REQUEST_GET_STDERR :
                     read_request_std(fd_req, false);
                     break;
@@ -172,6 +177,7 @@ int main(int argc, char * argv[]) {
                     read_request_std(fd_req, true);
                     break;
                case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
+                    read_request_t_ec(fd_req);
                     break;
                case CLIENT_REQUEST_LIST_TASKS :
                     close_pipe(fd_req);
