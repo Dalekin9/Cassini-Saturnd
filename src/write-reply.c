@@ -72,7 +72,6 @@ void write_reply_std(uint64_t taskid, int is_stdout) {
         } else {
             filepath = get_file_path(folder_path, "/stderr");
         }
-        free(folder_path);
 
         int filefd = open(filepath, O_RDONLY);
         if (filefd == -1) { // file doesn't exist == task was never run
@@ -97,7 +96,9 @@ void write_reply_std(uint64_t taskid, int is_stdout) {
             free(buf);
         }
         free(filepath);
+        free(dirp);
     }
+    free(folder_path);
     close_pipe(fd);
 }
 
