@@ -188,7 +188,6 @@ void write_times_exitcodes(int fd, run **runs, uint32_t nb_runs, uint16_t errcod
         current_size += sizeof(uint32_t);
 
         for (uint32_t i = 0; i < nb_runs; i++){
-            //printf("%llu write\n", runs[i]->time);
             int64_t time = be64toh(runs[i]->time);
             memcpy(buff+current_size, &time, sizeof(int64_t));
             current_size += sizeof(int64_t);
@@ -248,11 +247,13 @@ void write_reply_t_ec(uint64_t taskid){
                 int res = read(fd_runs, &date, sizeof(int64_t));
                 if (res > 0) {
                     runs[i]->time = be64toh(date);
-                    if (read(fd_runs, &exitcode, sizeof(uint16_t) == -1)){
+                    res = read(fd_runs, &exitcode, sizeof(uint16_t));
+                    if (res <= 0){
                         perror("Reading error : can't read the return code from the runs file");
                         exit(EXIT_FAILURE);
-                    } 
-                    runs[i]->exitcode = exitcode;
+                    } else {
+                        runs[i]->exitcode = exitcode;
+                    }
                 } else {
                     perror("Reading error : can't read the timecode from the runs file");
                     exit(EXIT_FAILURE);

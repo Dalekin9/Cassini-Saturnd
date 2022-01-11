@@ -134,9 +134,6 @@ void run_one_task(s_task *task, uint64_t taskid) {
         int64_t time_of_execution = time(NULL); // current time
 
         struct tm *t = localtime(&time_of_execution);
-        fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d\n",
-            t->tm_year + 1900,t->tm_mon + 1, t->tm_mday, t->tm_hour,
-            t->tm_min, t->tm_sec);
 
         waitpid(f, &status, 0);
 
