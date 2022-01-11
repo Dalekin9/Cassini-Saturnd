@@ -41,7 +41,6 @@ void read_reply_x(int fd, uint16_t repcode) {
         uint32_t nbRuns;
         read(fd, &nbRuns, sizeof(uint32_t));
         nbRuns = htobe32(nbRuns);
-
         run **runs = malloc(nbRuns * sizeof(run));
         is_malloc_error(runs);
 

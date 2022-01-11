@@ -3,10 +3,10 @@
 /* Writes a reply for operations that only returns a repcode
    with it's corresponding error if it is err*/
 void write_reply_code(int fd, bool ok, uint16_t errcode){
-    if(ok){
+    if(ok) {
         uint16_t rep = be16toh(SERVER_REPLY_OK);
         write(fd, &rep, sizeof(uint16_t));
-    }else{
+    } else {
         size_t length = sizeof(uint16_t) * 2;
         BYTE buff[length];
         uint16_t rep = SERVER_REPLY_ERROR;
@@ -15,7 +15,6 @@ void write_reply_code(int fd, bool ok, uint16_t errcode){
         memcpy(buff, &rep, sizeof(uint16_t));
         memcpy(buff + sizeof(uint16_t), &error, sizeof(uint16_t));
         write(fd, buff, length);
-
         close_pipe(fd);
     }
 }
@@ -172,133 +171,119 @@ void write_reply_l(s_task **tasks, uint32_t nb_tasks){
     
 }
 
-void write_times_exitcodes(int fd,bool ok, run **runs, uint32_t nbRuns, uint16_t errcode){
-
-    if(ok){
-        size_t length = sizeof(uint16_t) 
-        + sizeof(uint32_t) 
-        + (nbRuns * (sizeof(int64_t) + sizeof(uint16_t)));
-
+void write_times_exitcodes(int fd, run **runs, uint32_t nb_runs, uint16_t errcode){
+    if(errcode == SERVER_REPLY_OK){
+        // create the buffer for the reply
+        size_t length = sizeof(uint16_t) + sizeof(uint32_t)
+                        + (nb_runs * (sizeof(int64_t) + sizeof(uint16_t)));
         BYTE buff[length];
-        int currsize = 0;
+        int current_size = 0;
+
         uint16_t rep = SERVER_REPLY_OK;
         memcpy(buff, &rep, sizeof(uint16_t));
-        currsize += sizeof(uint16_t);
+        current_size += sizeof(uint16_t);
 
-        memcpy(buff + currsize, &nbRuns, sizeof(uint32_t));
-        currsize += sizeof(uint32_t);
+        uint32_t tmp = htobe32(nb_runs);
+        memcpy(buff + current_size, &tmp, sizeof(uint32_t));
+        current_size += sizeof(uint32_t);
 
-        for (uint32_t i = 0; i < nbRuns; i++){
-            int64_t runTime = runs[i]->time;
-            memcpy(buff+currsize, &runTime, sizeof(int64_t));
-            currsize += sizeof(int64_t);
+        for (uint32_t i = 0; i < nb_runs; i++){
+            //printf("%llu write\n", runs[i]->time);
+            int64_t time = be64toh(runs[i]->time);
+            memcpy(buff+current_size, &time, sizeof(int64_t));
+            current_size += sizeof(int64_t);
 
-            uint16_t exitCode = runs[i]->exitcode;
-            memcpy(buff+currsize, &exitCode, sizeof(uint16_t));
-            currsize += sizeof(uint16_t);
+            memcpy(buff+current_size, &(runs[i]->exitcode), sizeof(uint16_t));
+            current_size += sizeof(uint16_t);
         }
 
+        // write to the pipe
         write(fd, buff, length);
-        free(runs);
         close_pipe(fd);
-        
-    }else{
-        write_reply_code(fd,ok,errcode);
+
+        // clean up
+        for(int i = 0; i < nb_runs; i++) {
+            free(runs[i]);
+        }
         free(runs);
+    } else {
+        write_reply_code(fd, false, errcode);
     }
 }
 
 void write_reply_t_ec(uint64_t taskid){
     int fd = open_reply_pipe_saturnd();
-
     char* folder_path = get_directory_id_path(taskid);
-    char* runs_path = malloc((strlen(folder_path) + strlen("/runs") +1) * sizeof(char));
-    is_malloc_error(runs_path);
 
-    strcpy(runs_path, folder_path);
-    strcat(runs_path,"/runs");
-
-    char* nb_runs_path = malloc((strlen(folder_path) + strlen("/nb_runs") +1) * sizeof(char));
-    is_malloc_error(nb_runs_path);
-
-    strcpy(nb_runs_path, folder_path);
-    strcat(nb_runs_path,"/nb_runs");
+    char* runs_path = get_file_path(folder_path, "/runs");
+    char* nb_runs_path = get_file_path(folder_path, "/nb_runs");
 
     free(folder_path);
 
     int fd_runs = open(runs_path, O_RDONLY);
     if (fd_runs == -1) {
-        free(runs_path);
-        free(nb_runs_path);
-        write_times_exitcodes(fd, false,NULL, 0, SERVER_REPLY_ERROR_NOT_FOUND);
+        write_times_exitcodes(fd, NULL, 0, SERVER_REPLY_ERROR_NOT_FOUND);
     } else {
+        // read the number of runs
         int nb_runs_fd = open(nb_runs_path, O_RDONLY);
         uint32_t nb_runs;
         read(nb_runs_fd, &nb_runs, sizeof(uint32_t));
+        close(nb_runs_fd);
 
-        if (nb_runs_fd < 1) {
-            free(runs_path);
-            free(nb_runs_path);
-            close(nb_runs_fd);
-            write_times_exitcodes(fd, false, NULL, 0, SERVER_REPLY_ERROR_NEVER_RUN);
-        } else {
-            close(nb_runs_fd);
-            free(nb_runs_path);
-
-            size_t single = sizeof(int64_t) + sizeof(uint16_t);
-            run **runs = malloc(single * nb_runs);
+        if (nb_runs_fd < 1) { // never run
+            write_times_exitcodes(fd, NULL, 0, SERVER_REPLY_ERROR_NEVER_RUN);
+        } else { // read the runs
+            run **runs = malloc(sizeof(run*) * nb_runs);
             is_malloc_error(runs);
-            for(uint32_t i = 0; i < nb_runs; i++){
-                int64_t *date;
-                uint16_t *exitc;
 
+            // read timecode and exit code for each run
+            for(uint32_t i = 0; i < nb_runs; i++){
+                runs[i] = malloc(sizeof(int64_t) + sizeof(uint16_t));
+                is_malloc_error(runs[i]);
+
+                int64_t date;
+                uint16_t exitcode;
+
+                // read timecode
                 int res = read(fd_runs, &date, sizeof(int64_t));
                 if (res > 0) {
-                    run *r = malloc(single);
-                    is_malloc_error(r);
-                    
-                    r->time = *date;
-                    if (read(fd_runs, &exitc, sizeof(uint16_t) == -1)){
-                        perror("Erreur de read");
+                    runs[i]->time = be64toh(date);
+                    if (read(fd_runs, &exitcode, sizeof(uint16_t) == -1)){
+                        perror("Reading error : can't read the return code from the runs file");
                         exit(EXIT_FAILURE);
                     } 
-                    r->exitcode = *exitc;
-                    runs[nb_runs - 1] = r;
+                    runs[i]->exitcode = exitcode;
                 } else {
-                    perror("Erreur de read");
+                    perror("Reading error : can't read the timecode from the runs file");
                     exit(EXIT_FAILURE);
                 }
             }
-            free(runs_path);
-            write_times_exitcodes(fd, true, runs, nb_runs, 0);
+            // write the reply
+            write_times_exitcodes(fd, runs, nb_runs, SERVER_REPLY_OK);
+            // runs was already freeed in write_times_exitcodes
         }
     }
+    free(runs_path);
+    // no need to close the pipe "fd" : it was closed in the
+    // other helper methods when they finished writing
 }
 
 void write_reply_rm(uint64_t taskid){
-
     int fd = open_reply_pipe_saturnd();
     char *folder_path = get_directory_id_path(taskid);
 
     DIR *d = opendir(folder_path);
+    if(d) {
+        char filename[] = "/removed";
+        char* removed_path = get_file_path(folder_path, filename);
 
-    if(d){
-
-        char* removedname = malloc((strlen(folder_path) + strlen("/removed") +1) * sizeof(char));
-        is_malloc_error(removedname);
-        strcpy(removedname, folder_path);
-        strcat(removedname, "/removed");
-
-        int removed = open(removedname, O_CREAT);
-        close(removed);
-        free(removedname);
-
-        free(folder_path);
-
-        close_pipe(fd);
-
-    }else{
+        int removed_fd = open(removed_path, O_CREAT);
+        close(removed_fd);
+        free(removed_path);
+    } else {
         write_reply_code(fd, false, SERVER_REPLY_ERROR_NOT_FOUND);
-        free(folder_path);
     }
+
+    free(folder_path);
+    close_pipe(fd);
 }

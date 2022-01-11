@@ -44,6 +44,7 @@ uint64_t create_new_task(struct timing *t, uint32_t length, string **s) {
     // fichier "timing" qui contient les 3 champs de la structure
     char *file_timing = get_file_path(directory_name, "/timing");
     int fd = open(file_timing,O_CREAT,S_IRWXU);
+    close(fd);
     fd = open(file_timing, O_WRONLY);
     size_t len = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint64_t);
     BYTE buff[len];

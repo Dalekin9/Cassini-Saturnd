@@ -71,20 +71,24 @@ void move_stdout_stderr(int id) {
 void write_run_info(int64_t time, uint16_t exitcode, uint64_t taskid) {
     // append the time and exitcodes
     char *path_dir = get_directory_id_path(taskid);
-    char *filename = "/runs";
-    char *path_runs = get_file_path(path_dir, filename);
-    int fd = open(path_runs, O_APPEND | O_CREAT, S_IRWXU);
+    char *path_runs = get_file_path(path_dir, "/runs");
+
+    int fd = open(path_runs, O_APPEND | O_CREAT | O_WRONLY, S_IRWXU);
 
     BYTE buf[sizeof(int64_t) + sizeof(uint16_t)];
+    time = htobe64(time);
     memcpy(buf, &time, sizeof(int64_t));
     memcpy(buf+sizeof(int64_t), &exitcode, sizeof(uint16_t));
 
-    write(fd, buf, sizeof(int64_t) + sizeof(uint16_t));
+    int res = write(fd, buf, sizeof(int64_t) + sizeof(uint16_t));
+    if (res < 0) {
+        perror("Can't write the timestamp and exitcode to the runs file");
+        exit(EXIT_FAILURE);
+    }
     close(fd);
 
     // write the number of runs
-    filename = "/nb_runs";
-    char *path_nb = get_file_path(path_dir, filename);
+    char *path_nb = get_file_path(path_dir, "/nb_runs");
     fd = open(path_nb, O_RDWR);
     uint32_t nb_runs;
     if (fd < 0) { // file didn't exist
@@ -128,6 +132,12 @@ void run_one_task(s_task *task, uint64_t taskid) {
         int status; // to store the return status of the child
         uint16_t exitcode; // the value to write to the file
         int64_t time_of_execution = time(NULL); // current time
+
+        struct tm *t = localtime(&time_of_execution);
+        fprintf(stdout, "%02d-%02d-%02d %02d:%02d:%02d\n",
+            t->tm_year + 1900,t->tm_mon + 1, t->tm_mday, t->tm_hour,
+            t->tm_min, t->tm_sec);
+
         waitpid(f, &status, 0);
 
         if (WIFEXITED(status)) { // child sent a return value
