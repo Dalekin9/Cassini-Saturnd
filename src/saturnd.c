@@ -5,6 +5,10 @@ string **get_argv(uint32_t argc, int fd_a){
     int nb = 0;
     string **argv = malloc(nb * sizeof(string));
     for (int i = 0; i < argc;i++) {
+        argv = realloc(argv,(nb+1)*sizeof(string));
+        argv[nb] = malloc(sizeof(string));
+        is_malloc_error(argv[nb]);
+
         uint32_t t;
         int res = read(fd_a, &t, sizeof(uint32_t));
         if (res <= 0){
@@ -12,22 +16,15 @@ string **get_argv(uint32_t argc, int fd_a){
             exit(EXIT_FAILURE);
         }
 
-        string *s = malloc(sizeof(string));
-        is_malloc_error(s);
-        s->length = t;
-        s->s = malloc(sizeof(BYTE) * (t+1));
-        is_malloc_error(s->s);
-        res = read(fd_a, s->s, (sizeof(BYTE) * t));
+        argv[nb]->length = t;
+        argv[nb]->s = malloc(sizeof(BYTE) * (t+1));
+        is_malloc_error(argv[nb]->s);
+        res = read(fd_a, argv[nb]->s, (sizeof(BYTE) * t));
         if (res <= 0){
             perror("Error de read n2");
             exit(EXIT_FAILURE);
         }
-        s->s[t] = '\0';
-        argv = realloc(argv,(nb+1)*sizeof(string));
-
-        argv[nb] = malloc(sizeof(string));
-        is_malloc_error(argv[nb]);
-        argv[nb] = s;
+        argv[nb]->s[t] = '\0';
         nb = nb+1;
     }
     return argv;
