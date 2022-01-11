@@ -227,25 +227,21 @@ void write_reply_t_ec(uint64_t taskid){
     free(folder_path);
 
     int fd_runs = open(runs_path, O_RDONLY);
-    if(fd_runs == -1){
+    if (fd_runs == -1) {
         free(runs_path);
         free(nb_runs_path);
         write_times_exitcodes(fd, false,NULL, 0, SERVER_REPLY_ERROR_NOT_FOUND);
-    }else{
-
+    } else {
         int nb_runs_fd = open(nb_runs_path, O_RDONLY);
         uint32_t nb_runs;
-        
         read(nb_runs_fd, &nb_runs, sizeof(uint32_t));
-        printf("nb_runs read av :%u\n", nb_runs);
-        nb_runs = be32toh(nb_runs);
-        printf("nb_runs read :%u\n", nb_runs);
-        if(nb_runs_fd < 1){
+
+        if (nb_runs_fd < 1) {
             free(runs_path);
             free(nb_runs_path);
             close(nb_runs_fd);
             write_times_exitcodes(fd, false, NULL, 0, SERVER_REPLY_ERROR_NEVER_RUN);
-        }else{
+        } else {
             close(nb_runs_fd);
             free(nb_runs_path);
 
