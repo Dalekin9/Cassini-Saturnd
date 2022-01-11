@@ -84,16 +84,25 @@ void write_run_info(int64_t time, uint16_t exitcode, uint64_t taskid) {
 
     // write the number of runs
     filename = "/nb_runs";
+    printf("%u\n",taskid);
     char *path_nb = get_file_path(path_dir, filename);
     fd = open(path_nb, O_RDWR);
     uint32_t nb_runs;
     if (fd < 0) { // file didn't exist
         fd = open(path_nb, O_RDWR | O_CREAT, S_IRWXU);
-        nb_runs = 1;
+        nb_runs = 0;
     } else { // file already existed
         read(fd, &nb_runs, sizeof(uint32_t));
-        nb_runs += 1;
+        int r = remove(path_nb);
+        if (r == -1) {
+            printf("echec de la suppression du fichier : %s\n",strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        fd = open(path_nb, O_CREAT | O_RDWR, S_IRWXU);
+        nb_runs = be32toh(nb_runs);
     }
+    nb_runs += 1;
+    printf("av %u\n",nb_runs);
     nb_runs = htobe32(nb_runs);
     printf("%u\n",nb_runs);
     write(fd, &nb_runs, sizeof(uint32_t));

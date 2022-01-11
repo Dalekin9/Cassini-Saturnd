@@ -221,8 +221,8 @@ void write_reply_t_ec(uint64_t taskid){
     char* nb_runs_path = malloc((strlen(folder_path) + strlen("/nb_runs") +1) * sizeof(char));
     is_malloc_error(nb_runs_path);
 
-    strcpy(runs_path, folder_path);
-    strcat(runs_path,"/nb_runs");
+    strcpy(nb_runs_path, folder_path);
+    strcat(nb_runs_path,"/nb_runs");
 
     free(folder_path);
 
@@ -237,6 +237,7 @@ void write_reply_t_ec(uint64_t taskid){
         uint32_t nb_runs;
         
         read(nb_runs_fd, &nb_runs, sizeof(uint32_t));
+        printf("nb_runs read av :%u\n", nb_runs);
         nb_runs = be32toh(nb_runs);
         printf("nb_runs read :%u\n", nb_runs);
         if(nb_runs_fd < 1){
