@@ -128,26 +128,30 @@ int main(int argc, char * argv[]) {
      s_task** tasks = read_all_tasks(max_id);
      uint64_t nb_tasks = max_id + 1;
 
-
      char *pipes_directory = write_default_pipes_directory();
      char *request_pipe_name = get_pipe_name(pipes_directory, "saturnd-request-pipe");
      free(path);
      free(pipes_directory);
 
-     while (1) {
+    while (1) {
+        int fd_req = open_pipe(request_pipe_name, O_RDWR);
+        // fd_req needs to be in RDWR so that saturnd doesn't hang waiting
+        // for cassini to open its end
 
-          run_tasks(tasks, nb_tasks);
-          //sleep(5);
+        struct pollfd poll_fd;
+        poll_fd.fd = fd_req;
+        poll_fd.events = POLLIN;
 
-          int fd_req = open_pipe(request_pipe_name, O_RDONLY);
+        poll(&poll_fd, 1, 1000);
 
-          uint16_t op;
-          read(fd_req,&op,sizeof(uint16_t));
-          op = be16toh(op);
+        if (poll_fd.revents & POLLIN) { // there is a request in the tube
+            uint16_t op;
+            read(fd_req,&op,sizeof(uint16_t));
+            op = be16toh(op);
 
-          switch (op){
-               case CLIENT_REQUEST_CREATE_TASK :
-                    read_request_c(fd_req);
+            switch (op){
+                case CLIENT_REQUEST_CREATE_TASK :
+                read_request_c(fd_req);
                     for (uint32_t i = 0; i < nb_tasks; i++) {
                         for (uint32_t j = 0; j < tasks[i]->command->argc; j++){
                             free(tasks[i]->command->argv[j]->s);
@@ -161,35 +165,35 @@ int main(int argc, char * argv[]) {
                     free(tasks);
                     tasks = read_all_tasks(nb_tasks);
                     nb_tasks = nb_tasks + 1;
-
                     break;
-               case CLIENT_REQUEST_REMOVE_TASK :
-               {
+                case CLIENT_REQUEST_REMOVE_TASK :
                     uint64_t task_ID = read_taskID(fd_req);
                     read_request_rm(fd_req, task_ID);
                     tasks[task_ID]->is_removed = true;
                     break;
-               }
-               case CLIENT_REQUEST_GET_STDERR :
+                case CLIENT_REQUEST_GET_STDERR :
                     read_request_std(fd_req, false);
                     break;
-               case CLIENT_REQUEST_GET_STDOUT :
+                case CLIENT_REQUEST_GET_STDOUT :
                     read_request_std(fd_req, true);
                     break;
-               case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
+                case CLIENT_REQUEST_GET_TIMES_AND_EXITCODES :
                     read_request_t_ec(fd_req);
                     break;
-               case CLIENT_REQUEST_LIST_TASKS :
+                case CLIENT_REQUEST_LIST_TASKS :
                     close_pipe(fd_req);
                     write_reply_l(tasks, nb_tasks);
                     break;
-               case CLIENT_REQUEST_TERMINATE :
+                case CLIENT_REQUEST_TERMINATE :
                     write_reply_terminate();
                     exit(0); // kill the deamon
                     break;
-               default:
-                    break;
-          }
-
-     }
+                default: break;
+            }
+        } else {
+            // it's been 1 sec, go see if some tasks need to
+            // be executed
+            run_tasks(tasks, nb_tasks);
+        }
+    }
 }

@@ -13,6 +13,7 @@
 #include <math.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <poll.h>
 
 
 #include "read-request.h"
