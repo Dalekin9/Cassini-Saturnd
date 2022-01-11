@@ -1,27 +1,30 @@
-# Ce fichier decrit comment saturnd stocke les donnees sur le disque
-
+# Ce fichier décrit comment saturnd stocke les données sur le disque
 Toutes les valeurs d'entiers sont dans le format uint_n ou int_n, en convention big endian.
 Tout est dans le dossier "/tmp/<USERNAME>/saturnd".
 
-## Numero taskid disponible
-Dans ce dossier, il y a un fichier nomme "last_taskid" qui contient un
-uint_64 => le dernier numero de tache qui a ete utilise (le prochain libre 
+## Numéro taskid disponible
+Dans ce dossier, il y a un fichier nommé `last_taskid` qui contient un
+uint_64 => le dernier numero de tache qui a été utilisé (le prochain libre 
 est donc last_taskid+1).
 
-## pipes
-Les pipes sont dans le sous-dossier "pipes" (a creer si il n'existe pas).
+## Pipes
+Les pipes sont dans le sous-dossier `pipes` (à créer si il n'existe pas).
 
-## taches
-Creer un dossier "tasks" au demarrage si il n'existe pas.
-Pour chaque tache, creer un dossier dont le nom est "<TASKID>" et qui contient 5 fichiers :
-- un fichier "timing" qui contient les 3 champs de la structure
-- un fichier "argv" qui contient la commandline (meme format de donnees que dans la requete)
-- deux fichiers "stdout" et "stderr" qui contiennent les resultats des derniers runs.
-- un fichier "runs" qui contient la date et la valeur de retour de chaque execution
-  On mettra toutes les executions dans ce meme fichier :
-  - pour ecrire, on ajoute a la fin du fichier la derniere execution
-  - pour lire, on lit a chaque fois un int64 (la date) et un uint16 (la val de retour),
-    jusqu'a ce que le fichier soit vide
+## Tâches
+Créer un dossier "tasks" au demarrage si il n'existe pas.
+Pour chaque tache, creer un dossier dont le nom est "<TASKID>" et qui contient 6 fichiers :
 
-Quand on supprime une tache, on supprime le dossier correspondant.
+- Un fichier `timing` qui contient les 3 champs de la structure.
+- Un fichier `argv` qui contient la commandline (même format de données que dans la requête).
+- Deux fichiers `stdout` et `stderr` qui contiennent les résultats des derniers runs.
+- Un fichier `nb_runs` qui contient le nombre de fois que la tâche correspondante a run.
+- Un fichier `runs` qui contient la date et la valeur de retour de chaque exécution.
+  On mettra toutes les exécutions dans ce même fichier :
+  - Pour écrire, on ajoute à la fin du fichier la dernière exécution.
+  - Pour lire, on lit à chaque fois un int64 (la date) puis un uint16 (la valeur de retour),
+    jusqu'à ce que le fichier soit vide.
+
+- Si la tâche a été supprimée un fichier `removed` vide sera créé.
+
+
 
